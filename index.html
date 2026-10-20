@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduHard 3D - Media Pembelajaran Perangkat Keras Komputer (Fase D)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Three.js & OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        cyber: {
+                            900: '#070b19',
+                            800: '#0f172a',
+                            700: '#1e293b',
+                            accent: '#38bdf8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            background-color: #070b19;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.8);
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(56, 189, 248, 0.45);
+            transform: translateY(-2px);
+        }
+
+        /* 3D Hotspot Markers */
+        .hotspot-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            z-index: 20;
+        }
+        .hotspot-marker:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+            z-index: 30;
+        }
+        .hotspot-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        /* Grid Background Overlay */
+        .bg-cyber-grid {
+            background-image: 
+                radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.12), transparent 60%),
+                linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 32px 32px, 32px 32px;
+        }
+
+        /* Active Tab Styling */
+        .nav-tab.active {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 15px -2px rgba(2, 132, 199, 0.5);
+            border-color: rgba(125, 211, 252, 0.5);
+        }
+
+        .hw-btn.active {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.25) 0%, rgba(37, 99, 235, 0.3) 100%);
+            border-color: #38bdf8;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-cyber-grid min-h-screen flex flex-col font-sans text-slate-100">
+
+    <!-- ==================== HEADER / NAVBAR ==================== -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 px-3 sm:px-6 py-2.5">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand & Kurikulum Identity -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25 border border-sky-300/30">
+                    <i class="fa-solid fa-microchip text-white text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-sky-200 to-sky-400 bg-clip-text text-transparent">
+                            LabHard 3D Interaktif
+                        </h1>
+                        <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                            Informatika Fase D (SMP)
+                        </span>
+                    </div>
+                    <p class="text-[11px] sm:text-xs text-slate-400">
+                        Elemen: Sistem Komputer (SK) &bull; Mengenal Perangkat Keras Komputer
+                    </p>
+                </div>
+            </div>
+
+            <!-- Main Mode Switcher (3 Modes) -->
+            <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 gap-1 order-3 lg:order-2 w-full lg:w-auto justify-center">
+                <button onclick="switchAppMode('explore')" id="tab-explore" class="nav-tab active flex-1 lg:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold border border-transparent transition-all">
+                    <i class="fa-solid fa-cube"></i>
+                    <span>1. Eksplorasi 3D</span>
+                </button>
+                <button onclick="switchAppMode('simulation')" id="tab-simulation" class="nav-tab flex-1 lg:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white border border-transparent transition-all">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>2. Simulasi Alur IPOS</span>
+                </button>
+                <button onclick="switchAppMode('quiz')" id="tab-quiz" class="nav-tab flex-1 lg:flex-initial flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white border border-transparent transition-all">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    <span>3. Kuis & Evaluasi</span>
+                </button>
+            </nav>
+
+            <!-- Action Buttons (Audio & Teacher Info) -->
+            <div class="flex items-center gap-2 order-2 lg:order-3">
+                <button onclick="toggleSound()" id="btn-sound" title="Suara Efek Interaktif" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-sky-400 hover:bg-slate-800">
+                    <i class="fa-solid fa-volume-high" id="icon-sound"></i>
+                </button>
+                <button onclick="openTeacherModal()" class="px-3 py-2 rounded-xl glass-card flex items-center gap-2 text-xs font-semibold text-emerald-300 border-emerald-500/30 hover:bg-emerald-950/40">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span class="hidden sm:inline">Panduan Guru & TP</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT WORKSPACE ==================== -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-4 lg:p-5 flex flex-col">
+
+        <!-- ==================== MODE 1 & 2 SHARED LAYOUT (3D STAGE + PANELS) ==================== -->
+        <div id="workspace-3d-wrapper" class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+            
+            <!-- LEFT SIDEBAR: Daftar Perangkat Keras (Visible in Explore Mode) -->
+            <aside id="sidebar-hardware-list" class="lg:col-span-3 flex flex-col gap-3 order-2 lg:order-1">
+                <div class="glass-panel rounded-2xl p-3.5 flex flex-col gap-3 h-full">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                        <div>
+                            <h2 class="font-bold text-sm text-white flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group text-sky-400"></i>
+                                Katalog Perangkat Keras
+                            </h2>
+                            <p class="text-[11px] text-slate-400">Pilih komponen untuk melihat bentuk 3D</p>
+                        </div>
+                        <span class="text-xs font-mono bg-slate-800 px-2 py-0.5 rounded text-sky-300">8 Komponen</span>
+                    </div>
+
+                    <!-- Category Filter Pills -->
+                    <div class="grid grid-cols-5 gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80 text-[11px] font-semibold">
+                        <button onclick="filterCategory('ALL')" id="cat-ALL" class="cat-btn bg-sky-600 text-white py-1.5 rounded-lg transition">Semua</button>
+                        <button onclick="filterCategory('INPUT')" id="cat-INPUT" class="cat-btn text-slate-400 hover:text-white py-1.5 rounded-lg transition">Input</button>
+                        <button onclick="filterCategory('PROCESS')" id="cat-PROCESS" class="cat-btn text-slate-400 hover:text-white py-1.5 rounded-lg transition">Proses</button>
+                        <button onclick="filterCategory('OUTPUT')" id="cat-OUTPUT" class="cat-btn text-slate-400 hover:text-white py-1.5 rounded-lg transition">Output</button>
+                        <button onclick="filterCategory('STORAGE')" id="cat-STORAGE" class="cat-btn text-slate-400 hover:text-white py-1.5 rounded-lg transition">Storage</button>
+                    </div>
+
+                    <!-- Hardware List Container -->
+                    <div id="hardware-list-container" class="flex flex-col gap-2 overflow-y-auto max-h-[380px] lg:max-h-[540px] pr-1">
+                        <!-- Dynamically Populated via JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CENTER: 3D INTERACTIVE VIEWPORT -->
+            <section id="center-viewport-col" class="lg:col-span-5 flex flex-col gap-3 order-1 lg:order-2">
+                <div class="glass-panel rounded-2xl relative overflow-hidden flex flex-col flex-1 min-h-[380px] sm:min-h-[460px] lg:min-h-[600px] border border-sky-500/20 shadow-2xl">
+                    
+                    <!-- Top Floating HUD inside 3D Canvas -->
+                    <div class="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+                        <!-- Current Active Model Badge -->
+                        <div class="glass-panel px-3.5 py-2 rounded-xl flex items-center gap-2.5 pointer-events-auto border border-slate-700/80 shadow-lg">
+                            <span id="hud-category-dot" class="w-3 h-3 rounded-full bg-sky-400 animate-pulse"></span>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 id="hud-title" class="font-extrabold text-sm sm:text-base text-white leading-none">Prosesor (CPU)</h3>
+                                    <span id="hud-badge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">PROCESS</span>
+                                </div>
+                                <p id="hud-subtitle" class="text-[11px] text-slate-400 mt-0.5">Central Processing Unit &bull; Otak Komputer</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick 3D Action Controls -->
+                        <div id="hud-explore-controls" class="flex items-center gap-1.5 pointer-events-auto">
+                            <button onclick="toggleExplodeView()" id="btn-explode" class="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition shadow-lg">
+                                <i class="fa-solid fa-screwdriver-wrench"></i>
+                                <span id="text-explode">Bongkar 3D</span>
+                            </button>
+                            <button onclick="toggleHotspots()" id="btn-hotspots" class="px-2.5 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold flex items-center gap-1.5 transition" title="Tampilkan Titik Bagian Penting">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span class="hidden sm:inline">Label</span>
+                            </button>
+                            <button onclick="toggleAutoRotate()" id="btn-rotate" class="w-8 h-8 rounded-xl glass-card flex items-center justify-center text-sky-400 hover:text-white" title="Putar Otomatis">
+                                <i class="fa-solid fa-arrows-spin"></i>
+                            </button>
+                            <button onclick="resetCameraView()" class="w-8 h-8 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white" title="Reset Posisi Kamera">
+                                <i class="fa-solid fa-compress"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- THE 3D CANVAS CONTAINER -->
+                    <div id="canvas-container" class="w-full flex-1 relative cursor-grab active:cursor-grabbing">
+                        <!-- 3D Hotspot Overlay Container -->
+                        <div id="hotspots-layer" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+                    </div>
+
+                    <!-- Selected Hotspot Info Toast inside 3D Viewer -->
+                    <div id="hotspot-toast" class="hidden absolute bottom-14 left-3 right-3 sm:left-auto sm:right-3 sm:w-80 z-30 glass-panel p-3.5 rounded-xl border border-sky-400/50 shadow-2xl animate-fade-in">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs font-bold">
+                                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                </span>
+                                <h4 id="hotspot-title" class="font-bold text-xs sm:text-sm text-sky-300">Bagian Komponen</h4>
+                            </div>
+                            <button onclick="closeHotspotToast()" class="text-slate-400 hover:text-white text-xs">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <p id="hotspot-desc" class="text-xs text-slate-200 mt-1.5 leading-relaxed"></p>
+                    </div>
+
+                    <!-- Bottom Interactive Instruction Bar -->
+                    <div class="glass-panel border-t border-slate-800/80 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300 z-20">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-computer-mouse text-sky-400"></i>
+                                <b>Klik & Geser:</b> Putar 360&deg;
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrows-up-down text-emerald-400"></i>
+                                <b>Scroll / Cubit:</b> Perbesar (Zoom)
+                            </span>
+                            <span class="hidden sm:flex items-center gap-1.5">
+                                <i class="fa-solid fa-hand-pointer text-amber-400"></i>
+                                <b>Klik Titik Angka:</b> Detail Bagian
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sky-400 font-mono text-[10px]">
+                            <span>MODE:</span>
+                            <span id="status-mode-label" class="font-bold">UTUH (NORMAL)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT SIDEBAR: Panel Edukasi & Detail / Atau Kontrol Simulasi IPOS -->
+            <aside id="right-info-col" class="lg:col-span-4 flex flex-col gap-3 order-3">
+                
+                <!-- PANEL A: INFORMASI EDUKASI KOMPONEN (Visible in Explore Mode) -->
+                <div id="panel-education" class="glass-panel rounded-2xl p-4 flex flex-col gap-3.5 h-full overflow-y-auto max-h-[650px]">
+                    
+                    <!-- Header Title & Category Explanation -->
+                    <div class="border-b border-slate-800 pb-3">
+                        <div class="flex items-center justify-between">
+                            <span id="info-category-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                <i class="fa-solid fa-microchip"></i> Perangkat Pemrosesan (Process)
+                            </span>
+                            <span id="info-code-id" class="font-mono text-xs text-slate-400">SK-HW-01</span>
+                        </div>
+                        <h2 id="info-name" class="text-xl font-extrabold text-white mt-2">Prosesor (CPU)</h2>
+                        <p id="info-tagline" class="text-xs text-sky-300 font-medium">Central Processing Unit — Pusat Pengendali & Pemikir Komputer</p>
+                    </div>
+
+                    <!-- Fungsi Utama -->
+                    <div class="glass-card rounded-xl p-3.5 border-l-4 border-l-sky-400">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5 mb-1.5">
+                            <i class="fa-solid fa-book-open-reader"></i> Fungsi Utama (Materi Fase D)
+                        </h3>
+                        <p id="info-function" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                            Mengeksekusi perintah program, melakukan perhitungan matematika (ALU), dan mengatur jalannya aliran data di seluruh komponen komputer.
+                        </p>
+                    </div>
+
+                    <!-- Analogi Sehari-hari (Khas Kurikulum Merdeka) -->
+                    <div class=" rounded-xl p-3.5 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-300">Analogi Sehari-hari</h3>
+                                <p class="text-[10px] text-amber-200/70">Agar kamu lebih mudah membayangkannya!</p>
+                            </div>
+                        </div>
+                        <p id="info-analogy" class="text-xs sm:text-sm text-amber-100/90 leading-relaxed font-medium">
+                            CPU ibarat "Otak Manusia" atau "Koki Utama di Dapur". Semakin cerdas dan cepat sang koki, semakin cepat pula pesanan masakan (data) diselesaikan!
+                        </p>
+                    </div>
+
+                    <!-- Bagian-Bagian Penting (Klik untuk sorot di 3D) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-puzzle-piece text-emerald-400"></i>
+                                Anatomi & Bagian Penting 3D
+                            </h3>
+                            <span class="text-[10px] text-sky-400">Klik untuk fokus 3D</span>
+                        </div>
+                        <div id="info-parts-list" class="grid grid-cols-1 gap-2">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Ciri Fisik & Fakta Seru -->
+                    <div class="glass-card rounded-xl p-3.5 mt-auto">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 mb-2">
+                            <i class="fa-solid fa-check-double"></i> Ciri-Ciri Fisik & Satuan Ukur
+                        </h3>
+                        <ul id="info-characteristics" class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PANEL B: SIMULASI ALUR DATA SIKLUS IPOS (Visible in Simulation Mode) -->
+                <div id="panel-simulation" class="hidden glass-panel rounded-2xl p-4 flex-col gap-4 h-full">
+                    <div class="border-b border-slate-800 pb-3">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <i class="fa-solid fa-bolt"></i> Siklus Kerja Sistem Komputer
+                        </span>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-white mt-2">Simulasi Alur Data 3D (I-P-O-S)</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Amati bagaimana perangkat keras saling bekerja sama mengolah data di dalam ruang 3D!
+                        </p>
+                    </div>
+
+                    <!-- Pilih Skenario Aktivitas -->
+                    <div>
+                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2">
+                            Pilih Skenario Aktivitas Pengguna:
+                        </label>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button onclick="selectSimScenario(0)" id="sim-scen-0" class="sim-scen-btn active text-left p-2.5 rounded-xl glass-card border border-sky-400 bg-sky-500/15 flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-300 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-keyboard"></i>
+                                </span>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Mengetik Huruf "A" di Dokumen</div>
+                                    <div class="text-[11px] text-slate-400">Keyboard &rarr; Motherboard/RAM &rarr; CPU &rarr; Monitor</div>
+                                </div>
+                            </button>
+                            <button onclick="selectSimScenario(1)" id="sim-scen-1" class="sim-scen-btn text-left p-2.5 rounded-xl glass-card flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-gamepad"></i>
+                                </span>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Membuka Game / Aplikasi Grafis 3D</div>
+                                    <div class="text-[11px] text-slate-400">Mouse &rarr; SSD &rarr; RAM &rarr; CPU & GPU &rarr; Monitor</div>
+                                </div>
+                            </button>
+                            <button onclick="selectSimScenario(2)" id="sim-scen-2" class="sim-scen-btn text-left p-2.5 rounded-xl glass-card flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                </span>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Menyimpan File Tugas Sekolah (Ctrl+S)</div>
+                                    <div class="text-[11px] text-slate-400">Keyboard &rarr; RAM & CPU &rarr; Disimpan Permanen ke SSD</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Active Status Card -->
+                    <div class="glass-card rounded-xl p-3.5 border border-sky-500/30 bg-slate-900/70 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span id="sim-step-badge" class="text-xs font-extrabold px-2.5 py-0.5 rounded bg-sky-500 text-slate-950">
+                                    TAHAP 1 DARI 4: INPUT
+                                </span>
+                                <span id="sim-active-hw" class="text-xs font-mono text-sky-300 font-bold">Keyboard / Mouse</span>
+                            </div>
+                            <h3 id="sim-step-title" class="text-sm sm:text-base font-bold text-white mb-1.5">
+                                Pengguna Menekan Tombol di Keyboard
+                            </h3>
+                            <p id="sim-step-desc" class="text-xs text-slate-300 leading-relaxed">
+                                Saat jari menekan tombol 'A', saklar mekanikal mengirimkan sinyal listrik biner (01000001) melalui kabel menuju Motherboard.
+                            </p>
+                        </div>
+
+                        <!-- Step Indicator Dots -->
+                        <div class="grid grid-cols-4 gap-1.5 my-3">
+                            <button onclick="setSimStep(0)" id="sim-dot-0" class="py-1.5 px-2 rounded-lg text-[10px] font-bold bg-sky-500 text-slate-950 text-center">1. Input</button>
+                            <button onclick="setSimStep(1)" id="sim-dot-1" class="py-1.5 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 text-center">2. RAM/Proses</button>
+                            <button onclick="setSimStep(2)" id="sim-dot-2" class="py-1.5 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 text-center">3. Storage/GPU</button>
+                            <button onclick="setSimStep(3)" id="sim-dot-3" class="py-1.5 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 text-center">4. Output</button>
+                        </div>
+
+                        <!-- Playback Controls -->
+                        <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+                            <button onclick="prevSimStep()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
+                                <i class="fa-solid fa-backward-step"></i>
+                            </button>
+                            <button onclick="toggleSimAutoPlay()" id="btn-sim-play" class="flex-1 py-2 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg">
+                                <i class="fa-solid fa-play" id="icon-sim-play"></i>
+                                <span id="text-sim-play">Jalankan Animasi Alur Data</span>
+                            </button>
+                            <button onclick="nextSimStep()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
+                                <i class="fa-solid fa-forward-step"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL C: KUIS EVALUASI INTERAKTIF (Visible in Quiz Mode) -->
+                <div id="panel-quiz" class="hidden glass-panel rounded-2xl p-4 flex-col gap-4 h-full">
+                    <!-- Quiz Header & Score -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-star"></i> Evaluasi Fase D
+                            </span>
+                            <h2 class="text-lg font-extrabold text-white">Tantangan Detektif Hardware 3D</h2>
+                        </div>
+                        <div class="text-right bg-slate-900/90 px-3 py-1.5 rounded-xl border border-amber-500/30">
+                            <div class="text-[10px] text-slate-400">SKOR KAMU</div>
+                            <div id="quiz-score-display" class="text-base font-extrabold text-amber-400 font-mono">0 / 100</div>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Active Container -->
+                    <div id="quiz-question-container" class="flex-1 flex flex-col justify-between gap-3">
+                        <div>
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                <span id="quiz-progress-text" class="font-bold text-sky-400">Soal 1 dari 8</span>
+                                <span class="text-[11px] bg-sky-500/15 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30">
+                                    <i class="fa-solid fa-cube mr-1"></i>Perhatikan Model 3D di Samping!
+                                </span>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
+                                <div id="quiz-progress-bar" class="h-full bg-gradient-to-r from-sky-400 to-blue-600 transition-all duration-300" style="width: 12.5%"></div>
+                            </div>
+
+                            <!-- Question Prompt -->
+                            <div class="glass-card p-3.5 rounded-xl border border-slate-700 mb-3">
+                                <p id="quiz-question-text" class="text-xs sm:text-sm font-bold text-white leading-relaxed">
+                                    Perhatikan komponen 3D yang sedang berputar di layar! Komponen ini dijuluki sebagai "Otak Komputer". Apakah nama dan kategori komponen tersebut?
+                                </p>
+                            </div>
+
+                            <!-- Options List -->
+                            <div id="quiz-options-list" class="flex flex-col gap-2">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Feedback Box -->
+                        <div id="quiz-feedback-box" class="hidden p-3 rounded-xl border text-xs leading-relaxed"></div>
+
+                        <!-- Next Question Button -->
+                        <button onclick="nextQuizQuestion()" id="btn-quiz-next" class="hidden w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-xs sm:text-sm shadow-lg hover:opacity-95 transition">
+                            Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <!-- Quiz Final Result Screen (Hidden initially) -->
+                    <div id="quiz-result-container" class="hidden flex-1 flex-col items-center justify-center text-center p-4 gap-3">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-3xl text-amber-400 shadow-lg">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white">Evaluasi Selesai!</h3>
+                        <div id="quiz-stars-row" class="flex items-center gap-2 text-2xl text-amber-400 my-1"></div>
+                        <div class="bg-slate-900/90 px-6 py-3 rounded-2xl border border-slate-800">
+                            <div class="text-xs text-slate-400">Nilai Akhir Kamu</div>
+                            <div id="quiz-final-score" class="text-3xl font-extrabold text-sky-400 font-mono mt-0.5">100</div>
+                        </div>
+                        <p id="quiz-final-message" class="text-xs sm:text-sm text-slate-300 max-w-xs leading-relaxed"></p>
+                        <button onclick="restartQuiz()" class="mt-2 px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs flex items-center gap-2 transition">
+                            <i class="fa-solid fa-rotate-right"></i> Coba Lagi Kuis
+                        </button>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+    </main>
+
+    <!-- ==================== MODAL PANDUAN GURU & CAPAIAN PEMBELAJARAN ==================== -->
+    <div id="modal-teacher" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+        <div class="glass-panel max-w-2xl w-full rounded-2xl border border-slate-700 p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-base sm:text-lg text-white">Informasi Kurikulum Merdeka & Panduan Guru</h3>
+                        <p class="text-xs text-slate-400">Mata Pelajaran Informatika &bull; Fase D (Kelas VII / VIII / IX SMP)</p>
+                    </div>
+                </div>
+                <button onclick="closeTeacherModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                    <h4 class="font-bold text-sky-400 uppercase text-xs mb-1">Elemen & Capaian Pembelajaran (CP)</h4>
+                    <p><b>Elemen: Sistem Komputer (SK)</b> — Peserta didik mampu memahami fungsi sistem komputer (perangkat keras dan sistem operasi) yang memungkinkannya untuk menerima input, menyimpan, memproses, dan menghasilkan output sesuai dengan spesifikasinya.</p>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                    <h4 class="font-bold text-emerald-400 uppercase text-xs mb-1">Tujuan Pembelajaran (TP)</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Mengidentifikasi bentuk fisik 3D dan bagian-bagian penting dari perangkat keras komputer.</li>
+                        <li>Mengklasifikasikan perangkat keras ke dalam 4 kategori utama: <b>Input, Process, Output, dan Storage</b>.</li>
+                        <li>Menjelaskan cara kerja dan alur pemrosesan data antar perangkat keras (Siklus IPOS).</li>
+                    </ul>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                    <h4 class="font-bold text-amber-300 uppercase text-xs mb-1">Tips Penggunaan di Kelas (Smartboard / Proyektor / Lab Komputer)</h4>
+                    <ul class="list-disc list-inside space-y-1 text-amber-100/90">
+                        <li>Gunakan tombol <b>"Bongkar 3D"</b> saat menjelaskan bagian dalam komponen (seperti melihat <i>Silicon Die</i> di dalam CPU atau keping <i>NAND Flash</i> di dalam SSD) tanpa takut merusak perangkat asli.</li>
+                        <li>Gunakan tab <b>"2. Simulasi Alur IPOS"</b> untuk memvisualisasikan ke siswa bagaimana aliran sinyal berjalan dari Keyboard menuju RAM, CPU, SSD, hingga tampil di Monitor.</li>
+                        <li>Ajak siswa maju ke depan kelas untuk menjawab <b>"3. Kuis & Evaluasi"</b> dengan menebak model 3D yang sedang tampil.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-slate-800 flex justify-end">
+                <button onclick="closeTeacherModal()" class="px-5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs">
+                    Tutup Panduan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC & THREE.JS ENGINE ==================== -->
+    <script>
+        /*************************************************************************
+         * 1. SOUND SYNTHESIZER (Web Audio API - No External Assets Required)
+         *************************************************************************/
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                } else if (type === 'explode') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(640, now + 0.22);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(140, now + 0.25);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                // Ignore audio context restriction errors
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('icon-sound');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high text-sky-400' : 'fa-solid fa-volume-xmark text-slate-500';
+            if (soundEnabled) playSound('click');
+        }
+
+        /*************************************************************************
+         * 2. DATABASE PERANGKAT KERAS (MATERI INFORMATIKA FASE D)
+         *************************************************************************/
+        const HARDWARE_DATA = [
+            {
+                id: 'cpu',
+                code: 'SK-HW-01',
+                name: 'Prosesor (CPU)',
+                subtitle: 'Central Processing Unit • Otak Komputer',
+                category: 'PROCESS',
+                categoryLabel: 'Perangkat Pemrosesan (Process)',
+                icon: 'fa-microchip',
+                color: '#a855f7',
+                badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+                functionDesc: 'Prosesor atau CPU adalah pusat pengendali komputer yang bertugas mengeksekusi instruksi program, melakukan perhitungan logika/matematika (melalui ALU), serta mengatur alur data antar komponen.',
+                analogy: 'CPU ibarat "Otak Manusia" atau "Koki Utama di Dapur". Semakin banyak inti (Core) dan semakin tinggi kecepatannya (GHz), semakin banyak tugas yang bisa diselesaikan secara bersamaan!',
+                characteristics: [
+                    'Kecepatannya diukur dalam satuan Gigahertz (GHz), misalnya 3.5 GHz.',
+                    'Memiliki inti pemrosesan yang disebut Core (Dual-Core, Quad-Core, Octa-Core).',
+                    'Cepat panas saat bekerja keras sehingga wajib dipasang kipas/heatsink pendingin di atasnya.'
+                ],
+                hotspots: [
+                    { title: 'IHS (Integrated Heat Spreader)', pos: [0, 0.55, 0], desc: 'Penutup logam berlapis nikel di bagian atas CPU yang berfungsi menyebarkan panas dari inti silikon ke kipas pendingin (heatsink).' },
+                    { title: 'Silicon Die (Inti Prosesor)', pos: [0, 0.2, 0], desc: 'Keping silikon super kecil di bagian tengah yang berisi miliaran transistor mikroskopis tempat ALU dan Control Unit memproses data.' },
+                    { title: 'PCB Substrate', pos: [1.1, 0.0, 1.1], desc: 'Papan sirkuit hijau/biru berlapis-lapis yang menghubungkan inti silikon dengan pin-pin emas di bagian bawah.' },
+                    { title: 'Pin Konektor Emas (Gold Contacts)', pos: [0, -0.45, 0], desc: 'Ratusan titik kontak berlapis emas di bagian bawah CPU untuk mengalirkan listrik dan data ke soket Motherboard tanpa karat.' }
+                ]
+            },
+            {
+                id: 'motherboard',
+                code: 'SK-HW-02',
+                name: 'Motherboard (Mainboard)',
+                subtitle: 'Papan Induk Sirkuit Utama Komputer',
+                category: 'PROCESS',
+                categoryLabel: 'Perangkat Pemrosesan (Process)',
+                icon: 'fa-chess-board',
+                color: '#a855f7',
+                badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+                functionDesc: 'Motherboard adalah papan sirkuit cetak utama (PCB) tempat semua komponen perangkat keras seperti CPU, RAM, Kartu Grafis, dan SSD dipasang dan saling berkomunikasi.',
+                analogy: 'Motherboard ibarat "Kota Lengkap dengan Jalan Raya". CPU, RAM, dan SSD adalah gedung-gedung pentingnya, sedangkan jalur sirkuit tembaga di Motherboard adalah jalan raya tempat mobil data melintas!',
+                characteristics: [
+                    'Memiliki soket khusus untuk CPU, slot memanjang untuk RAM, dan jalur PCIe untuk Kartu Grafis.',
+                    'Dilengkapi chip BIOS/UEFI dan baterai koin (CMOS) untuk menyimpan pengaturan dasar dan waktu.',
+                    'Memiliki deretan port I/O (USB, LAN, Audio, HDMI) di bagian pinggir belakang.'
+                ],
+                hotspots: [
+                    { title: 'Soket CPU (LGA/AM)', pos: [-0.4, 0.35, -0.5], desc: 'Tempat khusus memasang Prosesor (CPU) lengkap dengan pengunci logam agar posisi pin presisi.' },
+                    { title: 'Slot Memori RAM (DIMM)', pos: [1.05, 0.35, -0.5], desc: 'Jalur memanjang tempat keping RAM ditancapkan (biasanya berjumlah 2 atau 4 slot).' },
+                    { title: 'Slot PCI Express (PCIe x16)', pos: [-0.2, 0.3, 0.65], desc: 'Slot berkecepatan tinggi tempat Kartu Grafis (GPU) dipasang.' },
+                    { title: 'Chipset & Pendingin VRM', pos: [-1.35, 0.45, -0.5], desc: 'Mengatur aliran daya listrik yang stabil ke CPU serta mengatur lalu lintas data dari SSD dan port USB.' }
+                ]
+            },
+            {
+                id: 'ram',
+                code: 'SK-HW-03',
+                name: 'Memori RAM',
+                subtitle: 'Random Access Memory • Penyimpanan Sementara',
+                category: 'PROCESS',
+                categoryLabel: 'Perangkat Pemrosesan (Process)',
+                icon: 'fa-memory',
+                color: '#a855f7',
+                badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+                functionDesc: 'RAM berfungsi menyimpan data dan instruksi aplikasi yang sedang aktif dijalankan secara sementara agar dapat diakses dengan sangat cepat oleh CPU.',
+                analogy: 'RAM ibarat "Meja Kerja Belajar". Semakin luas meja kerjamu (kapasitas RAM besar), semakin banyak buku dan alat tulis (aplikasi) yang bisa dibuka bersamaan tanpa berantakan! Namun saat selesai belajar (komputer mati), meja akan dikosongkan.',
+                characteristics: [
+                    'Bersifat Volatile: Data di dalam RAM otomatis hilang ketika komputer dimatikan atau kehilangan listrik.',
+                    'Kapasitasnya diukur dalam Gigabyte (GB), seperti 8 GB, 16 GB, atau 32 GB.',
+                    'Memiliki deretan pin kuningan di bagian bawah dengan satu celah lekukan (notch) agar tidak terbalik saat dipasang.'
+                ],
+                hotspots: [
+                    { title: 'Chip Memori (DRAM IC)', pos: [-0.6, 0.1, 0.25], desc: 'Keping hitam tempat data biner aplikasi disimpan sementara dengan kecepatan baca/tulis super tinggi.' },
+                    { title: 'Heat Spreader & RGB Bar', pos: [0, 0.55, 0], desc: 'Pelindung logam aluminium untuk membuang panas dari chip RAM sekaligus memberi pencahayaan indikator.' },
+                    { title: 'Pin Kuningan & Celah Kunci (Notch)', pos: [0.2, -0.55, 0], desc: 'Konektor emas 288-pin untuk menancapkan RAM ke slot Motherboard. Celah di tengah mencegah pemasangan terbalik.' }
+                ]
+            },
+            {
+                id: 'gpu',
+                code: 'SK-HW-04',
+                name: 'Kartu Grafis (GPU / VGA)',
+                subtitle: 'Graphics Processing Unit • Pengolah Visual & 3D',
+                category: 'PROCESS',
+                categoryLabel: 'Perangkat Pemrosesan (Process)',
+                icon: 'fa-fan',
+                color: '#a855f7',
+                badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+                functionDesc: 'Mengolah data grafis, gambar 2D/3D, video resolusi tinggi, dan efek visual untuk diterjemahkan menjadi tampilan gambar yang tajam dan mulus di layar Monitor.',
+                analogy: 'Jika CPU adalah Koki Utama yang mengatur segalanya, maka GPU adalah "Seniman Pelukis Super Cepat" yang khusus menggambar jutaan titik warna (piksel) ke layar setiap detiknya!',
+                characteristics: [
+                    'Memiliki prosesor khusus (GPU Core) dan memori sendiri yang disebut VRAM.',
+                    'Dilengkapi kipas pendingin ganda/tiga dan sirip aluminium tebal karena mengolah grafis 3D menghasilkan panas tinggi.',
+                    'Memiliki port colokan ke monitor seperti HDMI dan DisplayPort.'
+                ],
+                hotspots: [
+                    { title: 'Kipas Pendingin Ganda (Dual Fan)', pos: [0.6, 0.45, 0], desc: 'Kipas berputar cepat yang meniupkan udara dingin ke sela-sela sirip heatsink aluminium.' },
+                    { title: 'Sirip Heatsink & Pipa Tembaga', pos: [0, 0.15, 0], desc: 'Menyerap panas langsung dari chip GPU dan menyebarkannya ke sirip-sirip logam.' },
+                    { title: 'Papan PCB & Chip Inti GPU', pos: [0, -0.25, 0], desc: 'Papan sirkuit utama yang memuat ribuan inti pemroses grafis (Shader Cores) dan memori VRAM.' },
+                    { title: 'Konektor PCIe & Port HDMI', pos: [-1.4, -0.25, 0.7], desc: 'Jalur penghubung ke Motherboard serta colokan kabel menuju layar Monitor.' }
+                ]
+            },
+            {
+                id: 'keyboard',
+                code: 'SK-HW-05',
+                name: 'Keyboard Mekanikal',
+                subtitle: 'Papan Ketik • Perangkat Masukan Teks & Perintah',
+                category: 'INPUT',
+                categoryLabel: 'Perangkat Masukan (Input)',
+                icon: 'fa-keyboard',
+                color: '#38bdf8',
+                badgeClass: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+                functionDesc: 'Perangkat masukan (Input) utama yang digunakan pengguna untuk mengetikkan huruf, angka, simbol, serta memberikan perintah pintasan (shortcut) ke dalam sistem komputer.',
+                analogy: 'Keyboard ibarat "Pena dan Kertas Surat" tempat kita menuliskan pesan atau perintah agar bisa dibaca dan dikerjakan oleh otak komputer (CPU).',
+                characteristics: [
+                    'Menggunakan susunan tombol standar yang disebut tata letak QWERTY.',
+                    'Di bawah setiap tombol (Keycap) terdapat saklar (Switch) yang mengirimkan kode biner unik saat ditekan.',
+                    'Terbagi menjadi tombol ketik (Alfanumerik), tombol Fungsi (F1-F12), dan tombol kontrol (Ctrl, Alt, Shift, Panah).'
+                ],
+                hotspots: [
+                    { title: 'Keycaps (Topi Tombol)', pos: [-0.8, 0.45, 0], desc: 'Bagian plastik berlabel huruf/angka yang disentuh langsung oleh jari pengguna.' },
+                    { title: 'Mechanical Switches (Saklar)', pos: [0, 0.2, 0], desc: 'Saklar berpegas di bawah setiap tombol yang menyambungkan arus listrik saat tombol ditekan.' },
+                    { title: 'Papan Sirkuit (Keyboard PCB)', pos: [0, -0.2, 0], desc: 'Mendeteksi koordinat tombol mana yang ditekan lalu mengirimkan kodenya lewat kabel USB.' }
+                ]
+            },
+            {
+                id: 'mouse',
+                code: 'SK-HW-06',
+                name: 'Mouse Optik',
+                subtitle: 'Penunjuk Kursor (Pointing Device)',
+                category: 'INPUT',
+                categoryLabel: 'Perangkat Masukan (Input)',
+                icon: 'fa-computer-mouse',
+                color: '#38bdf8',
+                badgeClass: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+                functionDesc: 'Perangkat masukan penunjuk (Pointing Device) yang menerjemahkan gerakan tangan di atas permukaan meja menjadi gerakan panah kursor di layar monitor, serta memilih objek melalui klik.',
+                analogy: 'Mouse ibarat "Perpanjangan Jari Tangan Kita" di dalam dunia virtual layar komputer untuk menunjuk, memilih, dan menggeser benda.',
+                characteristics: [
+                    'Memiliki tombol Klik Kiri (memilih/eksekusi), Klik Kanan (membuka menu opsi), dan Scroll Wheel (menggulung halaman).',
+                    'Menggunakan sensor cahaya LED/Laser Optik di bagian bawah untuk membaca pergerakan permukaan.',
+                    'Tingkat kepekaan gerakannya diukur dalam satuan DPI (Dots Per Inch).'
+                ],
+                hotspots: [
+                    { title: 'Tombol Klik Kiri & Kanan', pos: [0, 0.45, -0.8], desc: 'Pelat tombol ergonomis yang menekan saklar mikro (Microswitch) untuk klik dan pilih.' },
+                    { title: 'Roda Gulir (Scroll Wheel)', pos: [0, 0.55, -0.65], desc: 'Roda berputar untuk menggulirkan halaman dokumen atau website ke atas dan ke bawah.' },
+                    { title: 'Sensor Optik LED Merah', pos: [0, -0.35, 0.1], desc: 'Kamera mikro berkecepatan tinggi di bagian bawah mouse yang memotret pergerakan permukaan ribuan kali per detik.' }
+                ]
+            },
+            {
+                id: 'monitor',
+                code: 'SK-HW-07',
+                name: 'Monitor LED IPS',
+                subtitle: 'Layar Penampil Visual Utama',
+                category: 'OUTPUT',
+                categoryLabel: 'Perangkat Keluaran (Output)',
+                icon: 'fa-desktop',
+                color: '#10b981',
+                badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+                functionDesc: 'Perangkat keluaran (Output) yang mengubah sinyal data digital hasil olahan Kartu Grafis (GPU) menjadi tampilan informasi visual berupa teks, gambar, dan video yang bisa dilihat mata manusia.',
+                analogy: 'Monitor ibarat "Papan Tulis Kelas atau Jendela Kaca" tempat semua hasil pemikiran komputer ditampilkan secara visual agar bisa kita baca dan nikmati.',
+                characteristics: [
+                    'Ketajaman gambarnya ditentukan oleh Resolusi (jumlah titik piksel, misalnya Full HD 1920x1080 piksel).',
+                    'Kehalusan gerakan layarnya diukur dalam satuan Refresh Rate atau Hertz (Hz), seperti 60Hz atau 144Hz.',
+                    'Menggunakan teknologi panel LED hemat daya dengan jutaan piksel warna Merah, Hijau, dan Biru (RGB).'
+                ],
+                hotspots: [
+                    { title: 'Panel Layar LCD/LED (Piksel RGB)', pos: [0, 0.55, 0.25], desc: 'Lapisan panel kristal cair yang menyusun jutaan titik warna (piksel) membentuk gambar dan teks.' },
+                    { title: 'Lapisan Backlight LED', pos: [0, 0.55, -0.1], desc: 'Sumber cahaya putih di belakang layar agar gambar pada panel LCD terlihat terang dan jelas.' },
+                    { title: 'Penyangga Ergonomis (Stand)', pos: [0, -1.1, -0.2], desc: 'Kaki penopang kokoh yang menjaga posisi kemiringan dan ketinggian layar di meja.' }
+                ]
+            },
+            {
+                id: 'ssd',
+                code: 'SK-HW-08',
+                name: 'SSD (Solid State Drive)',
+                subtitle: 'Penyimpanan Data Permanen Berkecepatan Tinggi',
+                category: 'STORAGE',
+                categoryLabel: 'Perangkat Penyimpanan (Storage)',
+                icon: 'fa-hard-drive',
+                color: '#f59e0b',
+                badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                functionDesc: 'Perangkat penyimpanan (Storage) yang berfungsi menyimpan Sistem Operasi (Windows/Linux), aplikasi, dokumen, foto, dan video secara permanen meskipun komputer sudah dimatikan.',
+                analogy: 'Jika RAM adalah meja kerja sementara, maka SSD ibarat "Lemari Buku / Tas Ransel". Semua buku catatan yang sudah kamu masukkan ke dalam lemari akan tetap aman tersimpan walaupun kamu tidur (komputer mati)!',
+                characteristics: [
+                    'Bersifat Non-Volatile: Data TIDAK hilang saat listrik atau komputer dimatikan.',
+                    'Menggunakan chip memori Flash elektronik (tanpa piringan berputar seperti Hard Disk lama), sehingga tahan guncangan dan jauh lebih cepat.',
+                    'Kapasitasnya besar, mulai dari 256 GB, 512 GB, hingga beberapa Terabyte (1 TB = 1024 GB).'
+                ],
+                hotspots: [
+                    { title: 'Chip NAND Flash Memory', pos: [0.3, 0.12, 0.2], desc: 'Deretan keping memori tempat seluruh file, sistem operasi, dan tugas sekolah disimpan secara permanen.' },
+                    { title: 'Chip Controller SSD', pos: [-0.75, 0.12, 0], desc: 'Prosesor mini di dalam SSD yang mengatur lokasi penyimpanan dan pengambilan data pada chip NAND.' },
+                    { title: 'Konektor SATA / NVMe Gold Pins', pos: [-1.45, 0.0, 0], desc: 'Jalur konektor emas untuk mengalirkan data berkecepatan tinggi menuju Motherboard.' }
+                ]
+            }
+        ];
+
+        /*************************************************************************
+         * 3. DATA SIMULASI SIKLUS IPOS (INPUT - PROCESS - OUTPUT - STORAGE)
+         *************************************************************************/
+        const SIM_SCENARIOS = [
+            {
+                name: 'Mengetik Huruf "A" di Dokumen',
+                steps: [
+                    {
+                        badge: 'TAHAP 1 DARI 4: INPUT (MASUKAN)',
+                        hw: 'Keyboard Mekanikal',
+                        title: 'Pengguna Menekan Tombol Huruf "A"',
+                        desc: 'Jari pengguna menekan tombol "A" pada Keyboard. Saklar di bawah tombol mengirimkan sinyal listrik kode biner ASCII (01000001) menuju Motherboard.',
+                        camPos: [-3.4, 2.5, 4.2]
+                    },
+                    {
+                        badge: 'TAHAP 2 DARI 4: PROCESS (MEMORI & CPU)',
+                        hw: 'Motherboard, RAM & CPU',
+                        title: 'Data Ditampung di RAM & Diolah oleh CPU',
+                        desc: 'Sinyal biner berjalan melewati jalur Motherboard menuju RAM (meja kerja) dan diterjemahkan oleh CPU (otak komputer) sebagai instruksi menampilkan karakter huruf "A".',
+                        camPos: [0, 3.2, 4.5]
+                    },
+                    {
+                        badge: 'TAHAP 3 DARI 4: PROCESS (KARTU GRAFIS)',
+                        hw: 'Kartu Grafis (GPU)',
+                        title: 'GPU Menggambar Bentuk Visual Huruf "A"',
+                        desc: 'CPU memerintahkan Kartu Grafis (GPU) untuk merender bentuk garis dan warna huruf "A" pada posisi kursor dokumen saat ini.',
+                        camPos: [0.8, 2.6, 4.0]
+                    },
+                    {
+                        badge: 'TAHAP 4 DARI 4: OUTPUT (KELUARAN)',
+                        hw: 'Monitor LED IPS',
+                        title: 'Huruf "A" Tampil di Layar Monitor!',
+                        desc: 'Sinyal gambar dikirim ke Monitor LED. Ribuan piksel menyala membentuk huruf "A" sehingga mata pengguna langsung melihat hasilnya dalam hitungan milidetik!',
+                        camPos: [3.2, 2.5, 4.2]
+                    }
+                ]
+            },
+            {
+                name: 'Membuka Aplikasi / Game 3D',
+                steps: [
+                    {
+                        badge: 'TAHAP 1 DARI 4: INPUT (MASUKAN)',
+                        hw: 'Mouse Optik',
+                        title: 'Klik Ganda Ikon Aplikasi dengan Mouse',
+                        desc: 'Pengguna menggerakkan Mouse Optik dan melakukan klik kiri dua kali pada ikon aplikasi. Sensor mouse mengirim koordinat klik ke CPU.',
+                        camPos: [-3.4, 2.5, 4.2]
+                    },
+                    {
+                        badge: 'TAHAP 2 DARI 4: STORAGE (PENYIMPANAN)',
+                        hw: 'SSD (Solid State Drive)',
+                        title: 'Mengambil File Aplikasi dari Lemari SSD',
+                        desc: 'Karena file aplikasi tersimpan permanen di SSD, CPU meminta SSD mengirimkan data program dan aset gambar menuju RAM.',
+                        camPos: [0, 2.2, 4.8]
+                    },
+                    {
+                        badge: 'TAHAP 3 DARI 4: PROCESS (RAM, CPU & GPU)',
+                        hw: 'RAM, CPU & GPU Bekerja Sama',
+                        title: 'RAM Menampung Data, CPU & GPU Memproses 3D',
+                        desc: 'Data aplikasi dimuat ke RAM agar cepat diakses. CPU menghitung logika program sementara GPU menggambar objek 3D berkecepatan tinggi.',
+                        camPos: [0, 3.3, 4.2]
+                    },
+                    {
+                        badge: 'TAHAP 4 DARI 4: OUTPUT (KELUARAN)',
+                        hw: 'Monitor LED IPS',
+                        title: 'Visual Game/Aplikasi Tampil Halus di Monitor',
+                        desc: 'Hasil olahan grafis ditampilkan secara interaktif pada layar Monitor LED dengan gerakan yang mulus.',
+                        camPos: [3.2, 2.5, 4.2]
+                    }
+                ]
+            },
+            {
+                name: 'Menyimpan File Tugas Sekolah (Ctrl + S)',
+                steps: [
+                    {
+                        badge: 'TAHAP 1 DARI 4: INPUT (MASUKAN)',
+                        hw: 'Keyboard Mekanikal',
+                        title: 'Menekan Pintasan Tombol Ctrl + S',
+                        desc: 'Setelah selesai mengetik tugas Informatika, siswa menekan kombinasi tombol Ctrl + S pada Keyboard untuk memberi perintah Simpan (Save).',
+                        camPos: [-3.4, 2.5, 4.2]
+                    },
+                    {
+                        badge: 'TAHAP 2 DARI 4: PROCESS (RAM & CPU)',
+                        hw: 'Memori RAM & Prosesor (CPU)',
+                        title: 'CPU Mengemas Data Tugas dari Meja Kerja (RAM)',
+                        desc: 'Data ketikan yang tadinya hanya berada sementara di RAM dikemas oleh CPU menjadi format file dokumen yang siap disimpan.',
+                        camPos: [0, 3.2, 4.4]
+                    },
+                    {
+                        badge: 'TAHAP 3 DARI 4: STORAGE (PENYIMPANAN PERMANEN)',
+                        hw: 'SSD (Solid State Drive)',
+                        title: 'File Ditulis Permanen ke Chip NAND Flash SSD',
+                        desc: 'Data mengalir menuju SSD dan ditulis ke dalam chip NAND Flash. Kini file tugas aman tersimpan meskipun komputer dimatikan!',
+                        camPos: [0, 2.0, 4.5]
+                    },
+                    {
+                        badge: 'TAHAP 4 DARI 4: OUTPUT (KONFIRMASI VISUAL)',
+                        hw: 'Monitor LED IPS',
+                        title: 'Muncul Notifikasi "File Berhasil Disimpan"',
+                        desc: 'Monitor menampilkan pesan status bahwa file tugas telah berhasil disimpan di dalam penyimpanan komputer.',
+                        camPos: [3.2, 2.5, 4.2]
+                    }
+                ]
+            }
+        ];
+
+        /*************************************************************************
+         * 4. DATA KUIS EVALUASI INTERAKTIF (DENGAN MODEL 3D)
+         *************************************************************************/
+        const QUIZ_QUESTIONS = [
+            {
+                modelId: 'cpu',
+                explode: false,
+                question: 'Perhatikan model 3D di layar! Komponen ini berfungsi sebagai "Otak Komputer" yang mengeksekusi perintah dan melakukan perhitungan. Apakah nama dan kategorinya?',
+                options: [
+                    'Prosesor (CPU) — Perangkat Pemrosesan (Process)',
+                    'Memori RAM — Perangkat Penyimpanan (Storage)',
+                    'Motherboard — Perangkat Masukan (Input)',
+                    'SSD — Perangkat Keluaran (Output)'
+                ],
+                correct: 0,
+                explanation: 'Tepat sekali! Prosesor (CPU) adalah perangkat pemrosesan utama (Process) yang menjadi otak komputer.'
+            },
+            {
+                modelId: 'ram',
+                explode: true,
+                question: 'Lihat model 3D yang sedang dibongkar ini! Komponen ini diibaratkan seperti "Meja Kerja Sementara" yang datanya akan hilang saat komputer dimatikan (Volatile). Komponen apakah ini?',
+                options: [
+                    'SSD (Solid State Drive)',
+                    'Kartu Grafis (GPU)',
+                    'Memori RAM (Random Access Memory)',
+                    'Power Supply Unit'
+                ],
+                correct: 2,
+                explanation: 'Benar! Memori RAM menyimpan data aplikasi yang sedang berjalan secara sementara (Volatile).'
+            },
+            {
+                modelId: 'ssd',
+                explode: true,
+                question: 'Komponen pada penampil 3D ini memiliki chip NAND Flash di dalamnya untuk menyimpan Sistem Operasi dan file tugas secara permanen walaupun komputer dimatikan. Kategori komponen ini adalah...',
+                options: [
+                    'Perangkat Masukan (Input Device)',
+                    'Perangkat Penyimpanan (Storage Device)',
+                    'Perangkat Keluaran (Output Device)',
+                    'Perangkat Penunjuk (Pointing Device)'
+                ],
+                correct: 1,
+                explanation: 'Hebat! SSD termasuk kategori Perangkat Penyimpanan (Storage) yang bersifat Non-Volatile (permanen).'
+            },
+            {
+                modelId: 'motherboard',
+                explode: false,
+                question: 'Papan sirkuit utama pada layar 3D ini menjadi tempat bertemunya CPU, RAM, Kartu Grafis, dan SSD agar bisa saling berkomunikasi. Apakah nama komponen ini?',
+                options: [
+                    'Keyboard PCB',
+                    'Monitor Panel IPS',
+                    'Motherboard (Mainboard)',
+                    'Heatsink Aluminium'
+                ],
+                correct: 2,
+                explanation: 'Betul! Motherboard adalah papan induk tempat seluruh komponen utama dipasang dan dihubungkan.'
+            },
+            {
+                modelId: 'gpu',
+                explode: true,
+                question: 'Komponen 3D dengan kipas ganda dan sirip pendingin ini bertugas mengolah visual 3D dan video agar tampil mulus di layar. Komponen ini disebut...',
+                options: [
+                    'Kartu Grafis (GPU / VGA Card)',
+                    'Mouse Optik Gaming',
+                    'Memori RAM DDR5',
+                    'Prosesor Suara (Sound Card)'
+                ],
+                correct: 0,
+                explanation: 'Tepat! Kartu Grafis (GPU) khusus mengolah data grafis dan merender tampilan visual ke monitor.'
+            },
+            {
+                modelId: 'mouse',
+                explode: true,
+                question: 'Perhatikan sensor merah di bagian bawah model 3D ini! Alat ini menerjemahkan gerakan tangan di meja menjadi gerakan kursor di layar. Alat ini termasuk kategori...',
+                options: [
+                    'Perangkat Keluaran (Output)',
+                    'Perangkat Pemrosesan (Process)',
+                    'Perangkat Penyimpanan (Storage)',
+                    'Perangkat Masukan (Input)'
+                ],
+                correct: 3,
+                explanation: 'Benar! Mouse Optik adalah Perangkat Masukan (Input) berjenis Pointing Device.'
+            },
+            {
+                modelId: 'monitor',
+                explode: false,
+                question: 'Setelah data diproses oleh CPU dan GPU, hasilnya ditampilkan menjadi gambar dan teks yang dapat dilihat mata kita melalui perangkat pada layar 3D ini. Apa peran perangkat ini?',
+                options: [
+                    'Perangkat Masukan (Input)',
+                    'Perangkat Keluaran (Output)',
+                    'Perangkat Penyimpanan (Storage)',
+                    'Perangkat Pemrosesan (Process)'
+                ],
+                correct: 1,
+                explanation: 'Seratus! Monitor LED adalah Perangkat Keluaran (Output) yang menampilkan informasi visual.'
+            },
+            {
+                modelId: 'keyboard',
+                explode: true,
+                question: 'Saat kamu mengetik tugas sekolah menggunakan perangkat 3D di samping, bagaimana urutan alur kerja sistem komputer (Siklus IPOS) yang benar hingga huruf tampil di layar?',
+                options: [
+                    'Monitor (Output) → Keyboard (Input) → CPU (Process)',
+                    'Keyboard (Input) → RAM & CPU/GPU (Process) → Monitor (Output)',
+                    'SSD (Storage) → Mouse (Input) → Keyboard (Output)',
+                    'CPU (Input) → Monitor (Process) → Keyboard (Output)'
+                ],
+                correct: 1,
+                explanation: 'Luar biasa! Siklus dimulai dari Input (Keyboard), diolah oleh Process (RAM, CPU, GPU), lalu ditampilkan oleh Output (Monitor).'
+            }
+        ];
+
+        /*************************************************************************
+         * 5. THREE.JS 3D ENGINE & PROCEDURAL HARDWARE BUILDER
+         *************************************************************************/
+        let scene, camera, renderer, controls;
+        let currentModelGroup = null;
+        let explodeParts = []; // Stores { mesh, basePos, explodeOffset }
+        let spinningFans = [];
+        let simPackets = [];
+        let isExploded = false;
+        let showHotspots = true;
+        let autoRotate = true;
+        let currentAppMode = 'explore'; // 'explore' | 'simulation' | 'quiz'
+        let currentHardwareId = 'cpu';
+        let currentCategoryFilter = 'ALL';
+
+        // Simulation state
+        let currentSimScenario = 0;
+        let currentSimStep = 0;
+        let simAutoPlayTimer = null;
+
+        // Quiz state
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let quizAnswered = false;
+
+        // Helper to safely probe if WebGL is available without triggering THREE.WebGLRenderer console errors
+        function probeWebGLContext() {
+            const testCanvas = document.createElement('canvas');
+            const contextNames = ['webgl2', 'webgl', 'experimental-webgl'];
+            const attributeSets = [
+                { alpha: true, antialias: true, powerPreference: 'default', failIfMajorPerformanceCaveat: false },
+                { alpha: true, antialias: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false },
+                { alpha: false, antialias: false }
+            ];
+
+            for (const attrs of attributeSets) {
+                for (const name of contextNames) {
+                    try {
+                        const gl = testCanvas.getContext(name, attrs);
+                        if (gl && typeof gl.getParameter === 'function') {
+                            return { canvas: testCanvas, gl, attrs };
+                        }
+                    } catch (e) {
+                        // Try next combination
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Full 3D Software Projection Renderer (Fallback when WebGL is disabled/unavailable)
+        class SoftwareCanvas3DRenderer {
+            constructor(width, height) {
+                this.domElement = document.createElement('canvas');
+                this.ctx = this.domElement.getContext('2d');
+                this.width = width;
+                this.height = height;
+                this.pixelRatio = 1;
+                this.shadowMap = { enabled: false, type: null };
+                this.setSize(width, height);
+            }
+
+            setPixelRatio(ratio) {
+                this.pixelRatio = Math.min(ratio || 1, 2);
+                this.setSize(this.width, this.height);
+            }
+
+            setSize(width, height) {
+                this.width = Math.max(1, width);
+                this.height = Math.max(1, height);
+                this.domElement.width = Math.floor(this.width * this.pixelRatio);
+                this.domElement.height = Math.floor(this.height * this.pixelRatio);
+                this.domElement.style.width = `${this.width}px`;
+                this.domElement.style.height = `${this.height}px`;
+            }
+
+            extractFaces(geometry) {
+                if (geometry._cachedSoftFaces) return geometry._cachedSoftFaces;
+                const faces = [];
+
+                // Optimize BoxGeometry into 6 clean quads for crisp edges and fast rendering
+                if (geometry.type === 'BoxGeometry' && geometry.parameters) {
+                    const hw = (geometry.parameters.width || 1) / 2;
+                    const hh = (geometry.parameters.height || 1) / 2;
+                    const hd = (geometry.parameters.depth || 1) / 2;
+                    const v = [
+                        new THREE.Vector3(-hw, -hh,  hd),
+                        new THREE.Vector3( hw, -hh,  hd),
+                        new THREE.Vector3( hw,  hh,  hd),
+                        new THREE.Vector3(-hw,  hh,  hd),
+                        new THREE.Vector3(-hw, -hh, -hd),
+                        new THREE.Vector3( hw, -hh, -hd),
+                        new THREE.Vector3( hw,  hh, -hd),
+                        new THREE.Vector3(-hw,  hh, -hd)
+                    ];
+                    const quads = [
+                        { verts: [v[3], v[2], v[1], v[0]], normal: new THREE.Vector3(0, 0, 1), tag: 'front' },
+                        { verts: [v[6], v[7], v[4], v[5]], normal: new THREE.Vector3(0, 0, -1), tag: 'back' },
+                        { verts: [v[7], v[6], v[2], v[3]], normal: new THREE.Vector3(0, 1, 0), tag: 'top' },
+                        { verts: [v[0], v[1], v[5], v[4]], normal: new THREE.Vector3(0, -1, 0), tag: 'bottom' },
+                        { verts: [v[2], v[6], v[5], v[1]], normal: new THREE.Vector3(1, 0, 0), tag: 'right' },
+                        { verts: [v[7], v[3], v[0], v[4]], normal: new THREE.Vector3(-1, 0, 0), tag: 'left' }
+                    ];
+                    geometry._cachedSoftFaces = quads;
+                    return quads;
+                }
+
+                if (geometry.type === 'PlaneGeometry' && geometry.parameters) {
+                    const hw = (geometry.parameters.width || 1) / 2;
+                    const hh = (geometry.parameters.height || 1) / 2;
+                    const quads = [{
+                        verts: [
+                            new THREE.Vector3(-hw,  hh, 0),
+                            new THREE.Vector3( hw,  hh, 0),
+                            new THREE.Vector3( hw, -hh, 0),
+                            new THREE.Vector3(-hw, -hh, 0)
+                        ],
+                        normal: new THREE.Vector3(0, 0, 1),
+                        tag: 'front'
+                    }];
+                    geometry._cachedSoftFaces = quads;
+                    return quads;
+                }
+
+                // Generic BufferGeometry triangle extractor
+                const posAttr = geometry.attributes && geometry.attributes.position;
+                if (!posAttr) {
+                    geometry._cachedSoftFaces = faces;
+                    return faces;
+                }
+                const indexAttr = geometry.index;
+                const getVec = (i) => new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+
+                const addTri = (i0, i1, i2) => {
+                    const a = getVec(i0);
+                    const b = getVec(i1);
+                    const c = getVec(i2);
+                    const ab = new THREE.Vector3().subVectors(b, a);
+                    const ac = new THREE.Vector3().subVectors(c, a);
+                    const normal = new THREE.Vector3().crossVectors(ab, ac).normalize();
+                    faces.push({ verts: [a, b, c], normal, tag: 'tri' });
+                };
+
+                if (indexAttr) {
+                    const count = indexAttr.count;
+                    const step = count > 900 ? 6 : 3;
+                    for (let i = 0; i < count; i += step) {
+                        addTri(indexAttr.getX(i), indexAttr.getX(i + 1), indexAttr.getX(i + 2));
+                    }
+                } else {
+                    const count = posAttr.count;
+                    for (let i = 0; i < count; i += 3) {
+                        addTri(i, i + 1, i + 2);
+                    }
+                }
+
+                geometry._cachedSoftFaces = faces;
+                return faces;
+            }
+
+            projectPoint(vec3, viewProjMatrix) {
+                const v = vec3.clone().applyMatrix4(viewProjMatrix);
+                if (v.z < -1 || v.z > 1) return null;
+                return {
+                    x: (v.x * 0.5 + 0.5) * this.width,
+                    y: (-(v.y * 0.5) + 0.5) * this.height,
+                    z: v.z
+                };
+            }
+
+            shadeColor(hexColor, emissiveHex, emissiveIntensity, brightness) {
+                const rBase = (hexColor >> 16) & 255;
+                const gBase = (hexColor >> 8) & 255;
+                const bBase = hexColor & 255;
+
+                const rEm = ((emissiveHex >> 16) & 255) * (emissiveIntensity || 0);
+                const gEm = ((emissiveHex >> 8) & 255) * (emissiveIntensity || 0);
+                const bEm = (emissiveHex & 255) * (emissiveIntensity || 0);
+
+                const r = Math.min(255, Math.max(0, Math.round(rBase * brightness + rEm)));
+                const g = Math.min(255, Math.max(0, Math.round(gBase * brightness + gEm)));
+                const b = Math.min(255, Math.max(0, Math.round(bBase * brightness + bEm)));
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            render(scene, camera) {
+                const ctx = this.ctx;
+                ctx.save();
+                ctx.scale(this.pixelRatio, this.pixelRatio);
+                ctx.clearRect(0, 0, this.width, this.height);
+
+                scene.updateMatrixWorld(true);
+                camera.updateMatrixWorld(true);
+                camera.updateProjectionMatrix();
+
+                const viewProj = new THREE.Matrix4().multiplyMatrices(
+                    camera.projectionMatrix,
+                    camera.matrixWorldInverse
+                );
+
+                // 1. Draw 3D Perspective Tech Grid Floor at y = -1.55
+                ctx.lineWidth = 1;
+                for (let i = -5; i <= 5; i++) {
+                    const isCenter = i === 0;
+                    ctx.strokeStyle = isCenter ? 'rgba(56, 189, 248, 0.35)' : 'rgba(30, 41, 59, 0.65)';
+                    const p1 = this.projectPoint(new THREE.Vector3(i, -1.55, -5), viewProj);
+                    const p2 = this.projectPoint(new THREE.Vector3(i, -1.55, 5), viewProj);
+                    if (p1 && p2) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                    const p3 = this.projectPoint(new THREE.Vector3(-5, -1.55, i), viewProj);
+                    const p4 = this.projectPoint(new THREE.Vector3(5, -1.55, i), viewProj);
+                    if (p3 && p4) {
+                        ctx.beginPath();
+                        ctx.moveTo(p3.x, p3.y);
+                        ctx.lineTo(p4.x, p4.y);
+                        ctx.stroke();
+                    }
+                }
+
+                // 2. Collect renderable polygons & lines from scene
+                const renderList = [];
+                const lightDir1 = new THREE.Vector3(0.5, 0.8, 0.6).normalize();
+                const lightDir2 = new THREE.Vector3(-0.6, -0.3, -0.5).normalize();
+                const camPos = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld);
+
+                scene.traverse((obj) => {
+                    if (!obj.visible) return;
+                    if (obj.type === 'GridHelper') return;
+
+                    // Handle 3D Lines (Data Bus Tubes in IPOS Simulation)
+                    if (obj.isLine && obj.geometry && obj.geometry.attributes.position) {
+                        const pos = obj.geometry.attributes.position;
+                        if (pos.count >= 2) {
+                            const vStart = new THREE.Vector3(pos.getX(0), pos.getY(0), pos.getZ(0)).applyMatrix4(obj.matrixWorld);
+                            const vEnd = new THREE.Vector3(pos.getX(1), pos.getY(1), pos.getZ(1)).applyMatrix4(obj.matrixWorld);
+                            const pStart = this.projectPoint(vStart, viewProj);
+                            const pEnd = this.projectPoint(vEnd, viewProj);
+                            if (pStart && pEnd) {
+                                renderList.push({
+                                    isLine: true,
+                                    pStart,
+                                    pEnd,
+                                    depth: (pStart.z + pEnd.z) * 0.5,
+                                    color: obj.material && obj.material.color ? `#${obj.material.color.getHexString()}` : '#38bdf8'
+                                });
+                            }
+                        }
+                        return;
+                    }
+
+                    if (!obj.isMesh || !obj.geometry || obj.geometry.type === 'RingGeometry') return;
+
+                    const faces = this.extractFaces(obj.geometry);
+                    const mat = obj.material || {};
+                    const baseHex = mat.color ? mat.color.getHex() : 0x94a3b8;
+                    const emissiveHex = mat.emissive ? mat.emissive.getHex() : 0x000000;
+                    const emissiveInt = mat.emissiveIntensity || 0;
+                    const texImage = mat.map && mat.map.image ? mat.map.image : null;
+
+                    const normalMatrix = new THREE.Matrix3().getNormalMatrix(obj.matrixWorld);
+
+                    for (let f = 0; f < faces.length; f++) {
+                        const face = faces[f];
+                        const worldNormal = face.normal.clone().applyMatrix3(normalMatrix).normalize();
+
+                        // World-space center of face
+                        const worldVerts = [];
+                        const center = new THREE.Vector3();
+                        for (let i = 0; i < face.verts.length; i++) {
+                            const wv = face.verts[i].clone().applyMatrix4(obj.matrixWorld);
+                            worldVerts.push(wv);
+                            center.add(wv);
+                        }
+                        center.divideScalar(face.verts.length);
+
+                        // Backface culling (except planes)
+                        const toCam = new THREE.Vector3().subVectors(camPos, center).normalize();
+                        if (obj.geometry.type !== 'PlaneGeometry' && worldNormal.dot(toCam) < -0.15) {
+                            continue;
+                        }
+
+                        // Project vertices to 2D canvas coordinates
+                        const pts2D = [];
+                        let valid = true;
+                        let zSum = 0;
+                        for (let i = 0; i < worldVerts.length; i++) {
+                            const p = this.projectPoint(worldVerts[i], viewProj);
+                            if (!p) {
+                                valid = false;
+                                break;
+                            }
+                            pts2D.push(p);
+                            zSum += p.z;
+                        }
+                        if (!valid) continue;
+
+                        const distDepth = center.distanceToSquared(camPos);
+                        const diff1 = Math.max(0, worldNormal.dot(lightDir1));
+                        const diff2 = Math.max(0, worldNormal.dot(lightDir2)) * 0.35;
+                        const brightness = 0.45 + diff1 * 0.65 + diff2;
+
+                        const fillStyle = this.shadeColor(baseHex, emissiveHex, emissiveInt, brightness);
+                        const strokeStyle = this.shadeColor(baseHex, emissiveHex, emissiveInt, brightness * 0.82);
+
+                        const useTexture = texImage && (
+                            (obj.geometry.type === 'PlaneGeometry') ||
+                            (obj.geometry.type === 'BoxGeometry' && face.tag === 'top')
+                        );
+
+                        renderList.push({
+                            isLine: false,
+                            pts: pts2D,
+                            depth: distDepth,
+                            fillStyle,
+                            strokeStyle,
+                            texImage: useTexture ? texImage : null
+                        });
+                    }
+                });
+
+                // 3. Painter's Algorithm: Sort back-to-front by distance to camera
+                renderList.sort((a, b) => b.depth - a.depth);
+
+                // 4. Draw sorted polygons & lines
+                for (let i = 0; i < renderList.length; i++) {
+                    const item = renderList[i];
+                    if (item.isLine) {
+                        ctx.save();
+                        ctx.strokeStyle = item.color;
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.moveTo(item.pStart.x, item.pStart.y);
+                        ctx.lineTo(item.pEnd.x, item.pEnd.y);
+                        ctx.stroke();
+                        ctx.restore();
+                        continue;
+                    }
+
+                    const pts = item.pts;
+                    ctx.beginPath();
+                    ctx.moveTo(pts[0].x, pts[0].y);
+                    for (let j = 1; j < pts.length; j++) {
+                        ctx.lineTo(pts[j].x, pts[j].y);
+                    }
+                    ctx.closePath();
+
+                    ctx.fillStyle = item.fillStyle;
+                    ctx.fill();
+                    ctx.strokeStyle = item.strokeStyle;
+                    ctx.lineWidth = 0.65;
+                    ctx.stroke();
+
+                    // Affine texture projection for labeled 3D surfaces (CPU IHS, Monitor Screen, SSD Cover)
+                    if (item.texImage && pts.length === 4) {
+                        ctx.save();
+                        ctx.clip();
+                        const p0 = pts[0];
+                        const p1 = pts[1];
+                        const p3 = pts[3];
+                        const w = item.texImage.width || 512;
+                        const h = item.texImage.height || 512;
+                        const ux = (p1.x - p0.x) / w;
+                        const uy = (p1.y - p0.y) / w;
+                        const vx = (p3.x - p0.x) / h;
+                        const vy = (p3.y - p0.y) / h;
+                        ctx.transform(ux, uy, vx, vy, p0.x, p0.y);
+                        ctx.drawImage(item.texImage, 0, 0);
+                        ctx.restore();
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth || 600;
+            const height = container.clientHeight || 500;
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+            camera.position.set(3.8, 2.8, 4.2);
+
+            // Safely check if WebGL is supported before calling THREE.WebGLRenderer
+            const probed = probeWebGLContext();
+            if (probed) {
+                const origConsoleError = console.error;
+                try {
+                    console.error = function () {};
+                    renderer = new THREE.WebGLRenderer({
+                        canvas: probed.canvas,
+                        context: probed.gl,
+                        antialias: probed.attrs.antialias,
+                        alpha: probed.attrs.alpha
+                    });
+                    console.error = origConsoleError;
+                    renderer.setSize(width, height);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                    renderer.shadowMap.enabled = true;
+                    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                } catch (err) {
+                    console.error = origConsoleError;
+                    renderer = new SoftwareCanvas3DRenderer(width, height);
+                    renderer.setPixelRatio(window.devicePixelRatio || 1);
+                }
+            } else {
+                renderer = new SoftwareCanvas3DRenderer(width, height);
+                renderer.setPixelRatio(window.devicePixelRatio || 1);
+            }
+
+            container.appendChild(renderer.domElement);
+
+            // OrbitControls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.06;
+            controls.maxDistance = 14;
+            controls.minDistance = 1.8;
+            controls.autoRotate = autoRotate;
+            controls.autoRotateSpeed = 1.2;
+
+            // Lighting setup
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.9);
+            dirLight1.position.set(6, 10, 7);
+            dirLight1.castShadow = true;
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.45);
+            dirLight2.position.set(-6, -4, -5);
+            scene.add(dirLight2);
+
+            const pointLight = new THREE.PointLight(0xa855f7, 0.5, 15);
+            pointLight.position.set(0, 4, -4);
+            scene.add(pointLight);
+
+            // Futuristic Tech Platform / Pedestal Grid
+            const gridHelper = new THREE.GridHelper(10, 20, 0x0284c7, 0x1e293b);
+            gridHelper.position.y = -1.55;
+            scene.add(gridHelper);
+
+            const ringGeo = new THREE.RingGeometry(2.1, 2.2, 64);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+            ringMesh.rotation.x = -Math.PI / 2;
+            ringMesh.position.y = -1.54;
+            scene.add(ringMesh);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            if (!container || !renderer) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // Helper to register parts that move during "Bongkar 3D (Exploded View)"
+        function addPart(group, mesh, basePos, explodeOffset) {
+            mesh.position.set(basePos[0], basePos[1], basePos[2]);
+            group.add(mesh);
+            explodeParts.push({
+                mesh: mesh,
+                basePos: new THREE.Vector3(basePos[0], basePos[1], basePos[2]),
+                explodePos: new THREE.Vector3(
+                    basePos[0] + explodeOffset[0],
+                    basePos[1] + explodeOffset[1],
+                    basePos[2] + explodeOffset[2]
+                )
+            });
+        }
+
+        // Procedural Canvas Texture Generator for realistic labels & circuits
+        function createLabelTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            if (type === 'cpu_ihs') {
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(0, 0, 512, 512);
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(20, 20, 472, 472);
+
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 42px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('EDUHARD CORE', 256, 170);
+                ctx.font = 'bold 54px "Plus Jakarta Sans", sans-serif';
+                ctx.fillStyle = '#0284c7';
+                ctx.fillText('i9 - FASE D', 256, 240);
+                ctx.font = '600 28px "JetBrains Mono", monospace';
+                ctx.fillStyle = '#334155';
+                ctx.fillText('5.20 GHz • 16 CORE', 256, 305);
+                ctx.font = '22px "JetBrains Mono", monospace';
+                ctx.fillText('SISTEM KOMPUTER', 256, 360);
+            } else if (type === 'monitor_screen') {
+                // Cool educational desktop screen
+                const grad = ctx.createLinearGradient(0, 0, 512, 512);
+                grad.addColorStop(0, '#0f172a');
+                grad.addColorStop(0.5, '#1e1b4b');
+                grad.addColorStop(1, '#0284c7');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 512, 512);
+
+                // Window mockup
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                ctx.fillRect(40, 50, 432, 360);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(40, 50, 432, 36);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillText('  INFORMATIKA FASE D - OUTPUT VISUAL', 55, 75);
+
+                ctx.fillStyle = '#34d399';
+                ctx.font = 'bold 28px monospace';
+                ctx.fillText('> Halo Siswa SMP!', 70, 145);
+                ctx.fillStyle = '#e2e8f0';
+                ctx.font = '22px monospace';
+                ctx.fillText('Status CPU : Optimal (3.8 GHz)', 70, 195);
+                ctx.fillText('Memori RAM : 8 GB / 16 GB Aktif', 70, 235);
+                ctx.fillText('Resolusi   : 1920x1080 (Full HD)', 70, 275);
+
+                // RGB Pixel preview bar
+                ctx.fillStyle = '#ef4444'; ctx.fillRect(70, 320, 100, 40);
+                ctx.fillStyle = '#22c55e'; ctx.fillRect(190, 320, 100, 40);
+                ctx.fillStyle = '#3b82f6'; ctx.fillRect(310, 320, 100, 40);
+            } else if (type === 'ssd_cover') {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, 512, 512);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 14;
+                ctx.strokeRect(24, 24, 464, 464);
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 56px sans-serif';
+                ctx.fillText('ULTRA SSD', 55, 160);
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 40px monospace';
+                ctx.fillText('1 TB NVMe / SATA', 55, 230);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '26px sans-serif';
+                ctx.fillText('Penyimpanan Permanen (Non-Volatile)', 55, 310);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }
+
+        /*************************************************************************
+         * BUILD 3D MODELS FOR EACH HARDWARE
+         *************************************************************************/
+        function buildHardwareModel(id) {
+            // Clear existing model
+            if (currentModelGroup) {
+                scene.remove(currentModelGroup);
+            }
+            explodeParts = [];
+            spinningFans = [];
+            simPackets = [];
+
+            const group = new THREE.Group();
+
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.85, roughness: 0.2 });
+            const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 });
+            const silverMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.25 });
+            const pcbGreenMat = new THREE.MeshStandardMaterial({ color: 0x065f46, metalness: 0.3, roughness: 0.5 });
+            const pcbDarkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.4, roughness: 0.4 });
+            const chipMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.2, roughness: 0.4 });
+
+            if (id === 'cpu') {
+                // 1. Bottom Gold Pins Matrix
+                const pinsGroup = new THREE.Group();
+                const pinPlate = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 2.3), goldMat);
+                pinsGroup.add(pinPlate);
+                for (let x = -0.95; x <= 0.95; x += 0.24) {
+                    for (let z = -0.95; z <= 0.95; z += 0.24) {
+                        if (Math.abs(x) < 0.3 && Math.abs(z) < 0.3) continue;
+                        const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 8), goldMat);
+                        pin.position.set(x, -0.08, z);
+                        pinsGroup.add(pin);
+                    }
+                }
+                addPart(group, pinsGroup, [0, -0.22, 0], [0, -0.7, 0]);
+
+                // 2. Green PCB Substrate
+                const pcb = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.16, 2.5), pcbGreenMat);
+                // Gold triangle corner marker
+                const corner = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.17, 0.25), goldMat);
+                corner.position.set(-1.1, 0, -1.1);
+                pcb.add(corner);
+                addPart(group, pcb, [0, -0.05, 0], [0, 0, 0]);
+
+                // 3. Internal Silicon Die (Visible when exploded!)
+                const dieGroup = new THREE.Group();
+                const siliconDie = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.1, 0.14, 0.85),
+                    new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9, roughness: 0.1, emissive: 0x0284c7, emissiveIntensity: 0.25 })
+                );
+                dieGroup.add(siliconDie);
+                // Tiny SMD capacitors around die
+                for (let i = -0.6; i <= 0.6; i += 0.3) {
+                    const smd = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.08), goldMat);
+                    smd.position.set(i, 0, 0.6);
+                    dieGroup.add(smd);
+                }
+                addPart(group, dieGroup, [0, 0.12, 0], [0, 0.45, 0]);
+
+                // 4. Integrated Heat Spreader (IHS Top Cover with Texture)
+                const ihsGroup = new THREE.Group();
+                const ihsBase = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.15, 2.1), silverMat);
+                const ihsTop = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.85, 0.12, 1.85),
+                    new THREE.MeshStandardMaterial({ map: createLabelTexture('cpu_ihs'), metalness: 0.6, roughness: 0.3 })
+                );
+                ihsTop.position.y = 0.12;
+                ihsGroup.add(ihsBase, ihsTop);
+                addPart(group, ihsGroup, [0, 0.28, 0], [0, 1.15, 0]);
+
+            } else if (id === 'motherboard') {
+                // 1. Main PCB Board
+                const board = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.14, 3.0), pcbDarkMat);
+                addPart(group, board, [0, 0, 0], [0, -0.3, 0]);
+
+                // 2. CPU Socket
+                const socketGroup = new THREE.Group();
+                const socketBase = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.14, 1.1), silverMat);
+                const socketCore = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.16, 0.8), goldMat);
+                socketGroup.add(socketBase, socketCore);
+                addPart(group, socketGroup, [-0.35, 0.12, -0.45], [0, 0.5, 0]);
+
+                // 3. RAM DIMM Slots (4 slots)
+                const ramSlotsGroup = new THREE.Group();
+                for (let i = 0; i < 4; i++) {
+                    const slotColor = i % 2 === 0 ? 0x0284c7 : 0x334155;
+                    const slot = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.14, 0.22, 1.45),
+                        new THREE.MeshStandardMaterial({ color: slotColor })
+                    );
+                    slot.position.set(i * 0.22, 0, 0);
+                    ramSlotsGroup.add(slot);
+                }
+                addPart(group, ramSlotsGroup, [0.75, 0.15, -0.45], [0.4, 0.6, 0]);
+
+                // 4. VRM Heatsinks & Rear I/O Shield
+                const vrmGroup = new THREE.Group();
+                const vrm1 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 1.3), silverMat);
+                vrm1.position.set(-1.35, 0.2, -0.45);
+                const vrm2 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.4, 0.4), silverMat);
+                vrm2.position.set(-0.35, 0.2, -1.2);
+                const ioPorts = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 1.1), darkMetalMat);
+                ioPorts.position.set(-1.5, 0.22, 0.6);
+                vrmGroup.add(vrm1, vrm2, ioPorts);
+                addPart(group, vrmGroup, [0, 0.08, 0], [-0.4, 0.7, 0]);
+
+                // 5. PCIe Slots & Chipset Heatsink + CMOS Battery
+                const pcieGroup = new THREE.Group();
+                const pcie1 = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.18, 0.18), silverMat);
+                pcie1.position.set(-0.2, 0, 0.55);
+                const pcie2 = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.18, 0.18), darkMetalMat);
+                pcie2.position.set(-0.2, 0, 1.05);
+                const chipset = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.75, 0.25, 0.75),
+                    new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.7, roughness: 0.2 })
+                );
+                chipset.position.set(1.05, 0.05, 0.85);
+                const cmos = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 24), silverMat);
+                cmos.position.set(0.3, 0, 0.85);
+                pcieGroup.add(pcie1, pcie2, chipset, cmos);
+                addPart(group, pcieGroup, [0, 0.14, 0], [0, 0.55, 0.3]);
+
+            } else if (id === 'ram') {
+                // 1. Green/Dark PCB Stick + Gold Fingers
+                const pcbGroup = new THREE.Group();
+                const pcbStick = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.9, 0.08), pcbGreenMat);
+                const goldRow1 = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.18, 0.09), goldMat);
+                goldRow1.position.set(-0.85, -0.5, 0);
+                const goldRow2 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.18, 0.09), goldMat);
+                goldRow2.position.set(0.95, -0.5, 0);
+                pcbGroup.add(pcbStick, goldRow1, goldRow2);
+                addPart(group, pcbGroup, [0, 0, 0], [0, -0.2, 0]);
+
+                // 2. 8 Memory IC Chips on Board
+                const icGroup = new THREE.Group();
+                for (let i = -1.4; i <= 1.4; i += 0.4) {
+                    const ic = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.42, 0.14), chipMat);
+                    ic.position.set(i, 0.02, 0);
+                    icGroup.add(ic);
+                }
+                addPart(group, icGroup, [0, 0, 0], [0, 0.2, 0]);
+
+                // 3. Front & Back Aluminum Heat Spreaders
+                const frontPlate = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.88, 0.06), darkMetalMat);
+                addPart(group, frontPlate, [0, 0.08, 0.12], [0, 0, 0.55]);
+
+                const backPlate = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.88, 0.06), darkMetalMat);
+                addPart(group, backPlate, [0, 0.08, -0.12], [0, 0, -0.55]);
+
+                // 4. RGB Diffuser Light Bar on Top
+                const rgbBar = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.72, 0.24, 0.28),
+                    new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0ea5e9, emissiveIntensity: 0.7 })
+                );
+                addPart(group, rgbBar, [0, 0.62, 0], [0, 0.75, 0]);
+
+            } else if (id === 'gpu') {
+                // 1. Protective Backplate
+                const backplate = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.08, 1.7), darkMetalMat);
+                addPart(group, backplate, [0, -0.38, 0], [0, -0.75, 0]);
+
+                // 2. GPU PCB + Gold PCIe Connector + Core Die
+                const pcbGroup = new THREE.Group();
+                const pcb = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.08, 1.65), pcbDarkMat);
+                const gpuDie = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.65, 0.12, 0.65),
+                    new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9, roughness: 0.1 })
+                );
+                gpuDie.position.set(-0.2, 0.06, 0);
+                // VRAM Chips around GPU die
+                for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 3) {
+                    const vram = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.1, 0.22), chipMat);
+                    vram.position.set(-0.2 + Math.cos(angle) * 0.6, 0.05, Math.sin(angle) * 0.55);
+                    pcbGroup.add(vram);
+                }
+                const pcieGold = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.09, 0.22), goldMat);
+                pcieGold.position.set(-0.5, 0, 0.9);
+                pcbGroup.add(pcb, gpuDie, pcieGold);
+                addPart(group, pcbGroup, [0, -0.24, 0], [0, -0.25, 0]);
+
+                // 3. Aluminum Heatsink Fins + Copper Heatpipes
+                const sinkGroup = new THREE.Group();
+                for (let x = -1.45; x <= 1.45; x += 0.12) {
+                    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.35, 1.55), silverMat);
+                    fin.position.set(x, 0, 0);
+                    sinkGroup.add(fin);
+                }
+                const copperMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.85, roughness: 0.2 });
+                for (let z = -0.4; z <= 0.4; z += 0.4) {
+                    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.1, 12), copperMat);
+                    pipe.rotation.z = Math.PI / 2;
+                    pipe.position.set(0, -0.1, z);
+                    sinkGroup.add(pipe);
+                }
+                addPart(group, sinkGroup, [0, 0.08, 0], [0, 0.35, 0]);
+
+                // 4. Shroud + Dual Spinning Fans
+                const shroudGroup = new THREE.Group();
+                const shroud = new THREE.Mesh(new THREE.BoxGeometry(3.45, 0.22, 1.75), darkMetalMat);
+                const rgbAccent = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.8, 0.25, 0.08),
+                    new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x9333ea, emissiveIntensity: 0.8 })
+                );
+                rgbAccent.position.set(0, 0, 0.86);
+                shroudGroup.add(shroud, rgbAccent);
+
+                [-0.85, 0.85].forEach(posX => {
+                    const fanHub = new THREE.Group();
+                    const center = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.14, 16), silverMat);
+                    fanHub.add(center);
+                    for (let b = 0; b < 7; b++) {
+                        const blade = new THREE.Mesh(
+                            new THREE.BoxGeometry(0.55, 0.04, 0.14),
+                            new THREE.MeshStandardMaterial({ color: 0x38bdf8 })
+                        );
+                        blade.rotation.y = (b * Math.PI * 2) / 7;
+                        blade.position.set(Math.cos(blade.rotation.y) * 0.28, 0, Math.sin(blade.rotation.y) * 0.28);
+                        fanHub.add(blade);
+                    }
+                    fanHub.position.set(posX, 0.1, 0);
+                    shroudGroup.add(fanHub);
+                    spinningFans.push(fanHub);
+                });
+                addPart(group, shroudGroup, [0, 0.35, 0], [0, 1.0, 0]);
+
+            } else if (id === 'keyboard') {
+                // 1. Bottom Aluminum Case with RGB Underglow
+                const caseGroup = new THREE.Group();
+                const kbCase = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.25, 1.65), darkMetalMat);
+                const rgbStrip = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.84, 0.08, 1.68),
+                    new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.6 })
+                );
+                rgbStrip.position.y = -0.08;
+                caseGroup.add(kbCase, rgbStrip);
+                addPart(group, caseGroup, [0, -0.22, 0], [0, -0.5, 0]);
+
+                // 2. Internal PCB Matrix Board
+                const kbPcb = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.08, 1.45), pcbGreenMat);
+                addPart(group, kbPcb, [0, -0.04, 0], [0, 0, 0]);
+
+                // 3. Mechanical Switches Layer
+                const switchesGroup = new THREE.Group();
+                // 4. Keycaps Layer
+                const keycapsGroup = new THREE.Group();
+
+                const switchMat = new THREE.MeshStandardMaterial({ color: 0xef4444 }); // Red linear switches
+                const keyMatNormal = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
+                const keyMatAccent = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3 });
+
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col < 11; col++) {
+                        // Spacebar handling on bottom row
+                        if (row === 3 && col > 3 && col < 7) continue;
+
+                        const x = -1.5 + col * 0.3;
+                        const z = -0.5 + row * 0.33;
+                        let width = 0.25;
+                        let posX = x;
+
+                        if (row === 3 && col === 3) {
+                            width = 1.1; // Spacebar
+                            posX = -1.5 + 4.5 * 0.3;
+                        }
+
+                        // Switch
+                        const sw = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.16), switchMat);
+                        sw.position.set(posX, 0, z);
+                        switchesGroup.add(sw);
+
+                        // Keycap
+                        const isAccent = (row === 3 && col === 3) || (row === 0 && col === 0) || (row === 1 && col >= 1 && col <= 3);
+                        const cap = new THREE.Mesh(new THREE.BoxGeometry(width, 0.16, 0.25), isAccent ? keyMatAccent : keyMatNormal);
+                        cap.position.set(posX, 0, z);
+                        keycapsGroup.add(cap);
+                    }
+                }
+                addPart(group, switchesGroup, [0, 0.1, 0], [0, 0.45, 0]);
+                addPart(group, keycapsGroup, [0, 0.25, 0], [0, 0.95, 0]);
+
+            } else if (id === 'mouse') {
+                // 1. Bottom Base Plate + Optical Sensor LED
+                const baseGroup = new THREE.Group();
+                const basePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.9, 0.14, 18), darkMetalMat);
+                basePlate.scale.set(1, 1, 1.45);
+                const sensorGlow = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.25, 0.16, 0.35),
+                    new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xdc2626, emissiveIntensity: 0.9 })
+                );
+                sensorGlow.position.y = -0.02;
+                baseGroup.add(basePlate, sensorGlow);
+                addPart(group, baseGroup, [0, -0.25, 0], [0, -0.55, 0]);
+
+                // 2. Internal PCB, Microswitches & Scroll Wheel
+                const innerGroup = new THREE.Group();
+                const mousePcb = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 1.8), pcbGreenMat);
+                const wheel = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.24, 0.24, 0.14, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.4 })
+                );
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(0, 0.32, -0.65);
+
+                const swLeft = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.18, 0.3), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
+                swLeft.position.set(-0.35, 0.12, -0.75);
+                const swRight = swLeft.clone();
+                swRight.position.x = 0.35;
+
+                innerGroup.add(mousePcb, wheel, swLeft, swRight);
+                addPart(group, innerGroup, [0, -0.05, 0], [0, 0.1, 0]);
+
+                // 3. Ergonomic Top Shell & Left/Right Click Plates
+                const shellGroup = new THREE.Group();
+                const domeGeo = new THREE.SphereGeometry(0.88, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.52);
+                const dome = new THREE.Mesh(domeGeo, new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.25, metalness: 0.5 }));
+                dome.scale.set(1, 0.72, 1.45);
+                shellGroup.add(dome);
+                addPart(group, shellGroup, [0, -0.15, 0], [0, 0.75, 0]);
+
+            } else if (id === 'monitor') {
+                // 1. Ergonomic Stand & V-Base
+                const standGroup = new THREE.Group();
+                const base = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.05, 0.1, 32), darkMetalMat);
+                base.position.set(0, -1.25, -0.2);
+                const neck = new THREE.Mesh(new THREE.BoxGeometry(0.32, 1.5, 0.2), silverMat);
+                neck.position.set(0, -0.5, -0.35);
+                standGroup.add(base, neck);
+                addPart(group, standGroup, [0, 0, 0], [0, -0.4, -0.4]);
+
+                // 2. Rear Housing & Backlight LED Panel
+                const backGroup = new THREE.Group();
+                const rearShell = new THREE.Mesh(new THREE.BoxGeometry(3.8, 2.25, 0.16), darkMetalMat);
+                const backlight = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.55, 2.0, 0.06),
+                    new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xe0f2fe, emissiveIntensity: 0.5 })
+                );
+                backlight.position.z = 0.08;
+                backGroup.add(rearShell, backlight);
+                addPart(group, backGroup, [0, 0.45, -0.1], [0, 0, -0.45]);
+
+                // 3. Front LCD IPS Screen Panel with Active Display Texture
+                const screenGroup = new THREE.Group();
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(3.82, 2.26, 0.06), new THREE.MeshStandardMaterial({ color: 0x090d16 }));
+                const displayMesh = new THREE.Mesh(
+                    new THREE.PlaneGeometry(3.64, 2.08),
+                    new THREE.MeshBasicMaterial({ map: createLabelTexture('monitor_screen') })
+                );
+                displayMesh.position.z = 0.035;
+                screenGroup.add(frame, displayMesh);
+                addPart(group, screenGroup, [0, 0.45, 0.05], [0, 0, 0.55]);
+
+            } else if (id === 'ssd') {
+                // 1. Bottom Aluminum Casing
+                const bottomCase = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.14, 2.0), darkMetalMat);
+                addPart(group, bottomCase, [0, -0.18, 0], [0, -0.55, 0]);
+
+                // 2. Internal Blue/Dark PCB + Controller + NAND Flash Chips + Gold Connector
+                const pcbGroup = new THREE.Group();
+                const ssdPcb = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.08, 1.8), new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 }));
+                const goldConn = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.09, 1.1), goldMat);
+                goldConn.position.set(-1.45, 0, 0);
+
+                // Controller Chip (Silver/Gold)
+                const controller = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.14, 0.48), silverMat);
+                controller.position.set(-0.75, 0.06, 0);
+
+                // 4 NAND Flash Storage Chips
+                for (let r = -0.45; r <= 0.45; r += 0.9) {
+                    for (let c = 0.05; c <= 0.75; c += 0.7) {
+                        const nand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.14, 0.62), chipMat);
+                        nand.position.set(c, 0.06, r);
+                        pcbGroup.add(nand);
+                    }
+                }
+                pcbGroup.add(ssdPcb, goldConn, controller);
+                addPart(group, pcbGroup, [0, 0, 0], [0, 0.05, 0]);
+
+                // 3. Top Branded Cover
+                const topCover = new THREE.Mesh(
+                    new THREE.BoxGeometry(3.1, 0.14, 2.0),
+                    new THREE.MeshStandardMaterial({ map: createLabelTexture('ssd_cover'), metalness: 0.5, roughness: 0.3 })
+                );
+                addPart(group, topCover, [0, 0.18, 0], [0, 0.75, 0]);
+            }
+
+            currentModelGroup = group;
+            scene.add(currentModelGroup);
+            buildHotspotDOM(id);
+        }
+
+        /*************************************************************************
+         * BUILD FULL SYSTEM 3D SCENE FOR IPOS SIMULATION MODE
+         *************************************************************************/
+        function buildSimulation3DScene() {
+            if (currentModelGroup) scene.remove(currentModelGroup);
+            explodeParts = [];
+            spinningFans = [];
+            simPackets = [];
+
+            const group = new THREE.Group();
+
+            // 1. LEFT: Input Devices (Keyboard & Mouse) at X = -2.8
+            const inputNode = new THREE.Group();
+            const kbMesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.15, 0.7), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+            const mouseMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.15, 0.55), new THREE.MeshStandardMaterial({ color: 0x38bdf8 }));
+            mouseMesh.position.set(1.05, 0, 0);
+            inputNode.add(kbMesh, mouseMesh);
+            inputNode.position.set(-2.7, -0.6, 0.6);
+            group.add(inputNode);
+
+            // 2. CENTER: Process Unit (Motherboard + CPU + RAM + GPU) at X = 0
+            const processNode = new THREE.Group();
+            const mobo = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.12, 1.8), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+            const cpu = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.25, 0.6), new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce, emissiveIntensity: 0.4 }));
+            cpu.position.set(-0.3, 0.15, -0.2);
+            const ram = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.45, 0.9), new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.4 }));
+            ram.position.set(0.45, 0.25, -0.2);
+            const gpu = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.3, 0.45), new THREE.MeshStandardMaterial({ color: 0x9333ea }));
+            gpu.position.set(0, 0.2, 0.5);
+            processNode.add(mobo, cpu, ram, gpu);
+            processNode.position.set(0, 0.2, -0.5);
+            group.add(processNode);
+
+            // 3. BOTTOM CENTER: Storage (SSD) at X = 0, Y = -1.1, Z = 1.2
+            const storageNode = new THREE.Mesh(
+                new THREE.BoxGeometry(1.3, 0.18, 0.85),
+                new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.3 })
+            );
+            storageNode.position.set(0, -0.8, 1.3);
+            group.add(storageNode);
+
+            // 4. RIGHT: Output (Monitor LED) at X = 2.7
+            const outputNode = new THREE.Group();
+            const monScreen = new THREE.Mesh(
+                new THREE.BoxGeometry(1.9, 1.2, 0.12),
+                new THREE.MeshBasicMaterial({ map: createLabelTexture('monitor_screen') })
+            );
+            monScreen.position.y = 0.5;
+            const monStand = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.7, 0.2), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+            outputNode.add(monScreen, monStand);
+            outputNode.position.set(2.7, -0.4, 0.2);
+            outputNode.rotation.y = -0.35;
+            group.add(outputNode);
+
+            // Data Bus Tubes connecting Input -> Process -> Storage -> Output
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8 });
+            const paths = [
+                [new THREE.Vector3(-2.7, -0.5, 0.6), new THREE.Vector3(0, 0.2, -0.5)], // Input to Process
+                [new THREE.Vector3(0, 0.2, -0.5), new THREE.Vector3(0, -0.8, 1.3)],    // Process to Storage
+                [new THREE.Vector3(0, 0.2, -0.5), new THREE.Vector3(2.7, 0.1, 0.2)]    // Process to Output
+            ];
+
+            paths.forEach((pts, idx) => {
+                const geo = new THREE.BufferGeometry().setFromPoints(pts);
+                group.add(new THREE.Line(geo, lineMat));
+
+                // Create glowing data sphere packet along path
+                const packet = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.14, 16, 16),
+                    new THREE.MeshBasicMaterial({ color: idx === 0 ? 0x38bdf8 : idx === 1 ? 0xf59e0b : 0x10b981 })
+                );
+                group.add(packet);
+                simPackets.push({ mesh: packet, start: pts[0], end: pts[1], progress: idx * 0.33 });
+            });
+
+            currentModelGroup = group;
+            scene.add(currentModelGroup);
+
+            // Clear hotspots during simulation mode and replace with IPOS Node Labels
+            const layer = document.getElementById('hotspots-layer');
+            layer.innerHTML = '';
+        }
+
+        /*************************************************************************
+         * 6. HOTSPOTS 3D PROJECTION & INTERACTION
+         *************************************************************************/
+        let activeHotspotData = [];
+
+        function buildHotspotDOM(hardwareId) {
+            const layer = document.getElementById('hotspots-layer');
+            layer.innerHTML = '';
+            activeHotspotData = [];
+
+            const hw = HARDWARE_DATA.find(item => item.id === hardwareId);
+            if (!hw || !hw.hotspots) return;
+
+            hw.hotspots.forEach((spot, index) => {
+                const el = document.createElement('div');
+                el.className = 'hotspot-marker flex items-center gap-1.5';
+                el.innerHTML = `
+                    <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-extrabold text-xs flex items-center justify-center border-2 border-white hotspot-pulse shadow-lg">
+                        ${index + 1}
+                    </span>
+                    <span class="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-900/90 text-sky-200 border border-sky-500/40 text-[10px] font-bold whitespace-nowrap shadow">
+                        ${spot.title}
+                    </span>
+                `;
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    focusHotspot(index);
+                };
+                layer.appendChild(el);
+
+                activeHotspotData.push({
+                    element: el,
+                    localPos: new THREE.Vector3(spot.pos[0], spot.pos[1], spot.pos[2]),
+                    title: spot.title,
+                    desc: spot.desc
+                });
+            });
+        }
+
+        function updateHotspotPositions() {
+            const layer = document.getElementById('hotspots-layer');
+            if (!showHotspots || currentAppMode !== 'explore') {
+                layer.style.display = 'none';
+                return;
+            }
+            layer.style.display = 'block';
+
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            activeHotspotData.forEach(spot => {
+                const worldPos = spot.localPos.clone();
+                if (isExploded) worldPos.multiplyScalar(1.35);
+
+                worldPos.project(camera);
+                const x = (worldPos.x * 0.5 + 0.5) * width;
+                const y = (-(worldPos.y * 0.5) + 0.5) * height;
+
+                if (worldPos.z > 1) {
+                    spot.element.style.opacity = '0';
+                } else {
+                    spot.element.style.opacity = '1';
+                    spot.element.style.left = `${x}px`;
+                    spot.element.style.top = `${y}px`;
+                }
+            });
+        }
+
+        function focusHotspot(index) {
+            const hw = HARDWARE_DATA.find(item => item.id === currentHardwareId);
+            if (!hw || !hw.hotspots[index]) return;
+            playSound('click');
+
+            const spot = hw.hotspots[index];
+            document.getElementById('hotspot-title').textContent = `${index + 1}. ${spot.title}`;
+            document.getElementById('hotspot-desc').textContent = spot.desc;
+            document.getElementById('hotspot-toast').classList.remove('hidden');
+        }
+
+        function closeHotspotToast() {
+            document.getElementById('hotspot-toast').classList.add('hidden');
+        }
+
+        /*************************************************************************
+         * 7. ANIMATION LOOP (EXPLODE INTERPOLATION, FANS, PACKETS)
+         *************************************************************************/
+        function animateLoop() {
+            requestAnimationFrame(animateLoop);
+
+            // Smoothly interpolate parts between normal and exploded state
+            explodeParts.forEach(part => {
+                const target = isExploded ? part.explodePos : part.basePos;
+                part.mesh.position.lerp(target, 0.08);
+            });
+
+            // Spin GPU fans
+            spinningFans.forEach(fan => {
+                fan.rotation.y += 0.12;
+            });
+
+            // Animate IPOS Data Packets in Simulation Mode
+            if (currentAppMode === 'simulation' && simPackets.length > 0) {
+                simPackets.forEach(pkt => {
+                    pkt.progress = (pkt.progress + 0.015) % 1;
+                    pkt.mesh.position.lerpVectors(pkt.start, pkt.end, pkt.progress);
+                });
+            }
+
+            if (controls) controls.update();
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+                updateHotspotPositions();
+            }
+        }
+
+        /*************************************************************************
+         * 8. UI CONTROLLERS & INTERACTION FUNCTIONS
+         *************************************************************************/
+        function renderHardwareCatalog() {
+            const container = document.getElementById('hardware-list-container');
+            container.innerHTML = '';
+
+            const filtered = HARDWARE_DATA.filter(item =>
+                currentCategoryFilter === 'ALL' || item.category === currentCategoryFilter
+            );
+
+            filtered.forEach(hw => {
+                const isActive = hw.id === currentHardwareId;
+                const btn = document.createElement('button');
+                btn.className = `hw-btn ${isActive ? 'active' : ''} w-full text-left p-2.5 rounded-xl glass-card flex items-center justify-between gap-2.5 group`;
+                btn.onclick = () => selectHardware(hw.id);
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 border ${hw.badgeClass}">
+                            <i class="fa-solid ${hw.icon}"></i>
+                        </div>
+                        <div class="truncate">
+                            <div class="font-bold text-xs sm:text-sm text-white group-hover:text-sky-300 transition truncate">${hw.name}</div>
+                            <div class="text-[10px] text-slate-400 truncate">${hw.subtitle}</div>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded border shrink-0 ${hw.badgeClass}">
+                        ${hw.category}
+                    </span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function filterCategory(cat) {
+            playSound('click');
+            currentCategoryFilter = cat;
+            ['ALL', 'INPUT', 'PROCESS', 'OUTPUT', 'STORAGE'].forEach(c => {
+                const btn = document.getElementById(`cat-${c}`);
+                if (c === cat) {
+                    btn.className = 'cat-btn bg-sky-600 text-white py-1.5 rounded-lg transition shadow';
+                } else {
+                    btn.className = 'cat-btn text-slate-400 hover:text-white py-1.5 rounded-lg transition';
+                }
+            });
+            renderHardwareCatalog();
+        }
+
+        function selectHardware(id, resetExplode = true) {
+            playSound('click');
+            currentHardwareId = id;
+            if (resetExplode) {
+                isExploded = false;
+                updateExplodeButtonUI();
+            }
+            closeHotspotToast();
+
+            const hw = HARDWARE_DATA.find(item => item.id === id);
+            if (!hw) return;
+
+            // Update 3D HUD
+            document.getElementById('hud-title').textContent = hw.name;
+            document.getElementById('hud-subtitle').textContent = hw.subtitle;
+            const hudBadge = document.getElementById('hud-badge');
+            hudBadge.textContent = hw.category;
+            hudBadge.className = `text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${hw.badgeClass}`;
+
+            // Update Right Educational Panel
+            const catBadge = document.getElementById('info-category-badge');
+            catBadge.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${hw.badgeClass}`;
+            catBadge.innerHTML = `<i class="fa-solid ${hw.icon}"></i> ${hw.categoryLabel}`;
+
+            document.getElementById('info-code-id').textContent = hw.code;
+            document.getElementById('info-name').textContent = hw.name;
+            document.getElementById('info-tagline').textContent = hw.subtitle;
+            document.getElementById('info-function').textContent = hw.functionDesc;
+            document.getElementById('info-analogy').textContent = hw.analogy;
+
+            // Populate Parts List
+            const partsList = document.getElementById('info-parts-list');
+            partsList.innerHTML = '';
+            hw.hotspots.forEach((spot, idx) => {
+                const partBtn = document.createElement('button');
+                partBtn.className = 'text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-sky-500/40 transition flex items-start gap-2.5';
+                partBtn.onclick = () => focusHotspot(idx);
+                partBtn.innerHTML = `
+                    <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        ${idx + 1}
+                    </span>
+                    <div>
+                        <div class="text-xs font-bold text-white">${spot.title}</div>
+                        <div class="text-[11px] text-slate-400 leading-snug mt-0.5">${spot.desc}</div>
+                    </div>
+                `;
+                partsList.appendChild(partBtn);
+            });
+
+            // Populate Characteristics
+            const charList = document.getElementById('info-characteristics');
+            charList.innerHTML = '';
+            hw.characteristics.forEach(ch => {
+                const li = document.createElement('li');
+                li.textContent = ch;
+                charList.appendChild(li);
+            });
+
+            renderHardwareCatalog();
+            buildHardwareModel(id);
+            resetCameraView();
+        }
+
+        function toggleExplodeView() {
+            playSound('explode');
+            isExploded = !isExploded;
+            updateExplodeButtonUI();
+        }
+
+        function updateExplodeButtonUI() {
+            const btn = document.getElementById('btn-explode');
+            const txt = document.getElementById('text-explode');
+            const status = document.getElementById('status-mode-label');
+
+            if (isExploded) {
+                btn.className = 'px-3 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 transition shadow-lg shadow-amber-500/30';
+                txt.textContent = 'Satukan 3D';
+                status.textContent = 'BONGKAR (EXPLODED VIEW)';
+            } else {
+                btn.className = 'px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition shadow-lg';
+                txt.textContent = 'Bongkar 3D';
+                status.textContent = 'UTUH (NORMAL)';
+            }
+        }
+
+        function toggleHotspots() {
+            playSound('click');
+            showHotspots = !showHotspots;
+            const btn = document.getElementById('btn-hotspots');
+            btn.className = showHotspots
+                ? 'px-2.5 py-2 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold flex items-center gap-1.5 transition'
+                : 'px-2.5 py-2 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition';
+        }
+
+        function toggleAutoRotate() {
+            playSound('click');
+            autoRotate = !autoRotate;
+            if (controls) controls.autoRotate = autoRotate;
+            const btn = document.getElementById('btn-rotate');
+            btn.className = autoRotate
+                ? 'w-8 h-8 rounded-xl glass-card flex items-center justify-center text-sky-400 border-sky-500/40'
+                : 'w-8 h-8 rounded-xl glass-card flex items-center justify-center text-slate-500';
+        }
+
+        function resetCameraView() {
+            if (!camera || !controls) return;
+            camera.position.set(3.8, 2.8, 4.2);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }
+
+        /*************************************************************************
+         * 9. MODE SWITCHING (EXPLORE / SIMULATION / QUIZ)
+         *************************************************************************/
+        function switchAppMode(mode) {
+            playSound('click');
+            currentAppMode = mode;
+            stopSimAutoPlay();
+            closeHotspotToast();
+
+            // Update Top Nav Tabs
+            ['explore', 'simulation', 'quiz'].forEach(m => {
+                const tab = document.getElementById(`tab-${m}`);
+                if (m === mode) tab.classList.add('active');
+                else tab.classList.remove('active');
+            });
+
+            const leftSidebar = document.getElementById('sidebar-hardware-list');
+            const centerCol = document.getElementById('center-viewport-col');
+            const rightCol = document.getElementById('right-info-col');
+
+            const panelEdu = document.getElementById('panel-education');
+            const panelSim = document.getElementById('panel-simulation');
+            const panelQuiz = document.getElementById('panel-quiz');
+            const hudControls = document.getElementById('hud-explore-controls');
+
+            if (mode === 'explore') {
+                leftSidebar.classList.remove('hidden');
+                centerCol.className = 'lg:col-span-5 flex flex-col gap-3 order-1 lg:order-2';
+                rightCol.className = 'lg:col-span-4 flex flex-col gap-3 order-3';
+
+                panelEdu.classList.remove('hidden');
+                panelSim.classList.add('hidden');
+                panelQuiz.classList.add('hidden');
+                hudControls.classList.remove('hidden');
+
+                selectHardware(currentHardwareId);
+            } else if (mode === 'simulation') {
+                leftSidebar.classList.add('hidden');
+                centerCol.className = 'lg:col-span-7 flex flex-col gap-3 order-1';
+                rightCol.className = 'lg:col-span-5 flex flex-col gap-3 order-2';
+
+                panelEdu.classList.add('hidden');
+                panelSim.classList.remove('hidden');
+                panelSim.classList.add('flex');
+                panelQuiz.classList.add('hidden');
+                hudControls.classList.add('hidden');
+
+                document.getElementById('hud-title').textContent = 'Simulasi Alur Data Sistem Komputer';
+                document.getElementById('hud-subtitle').textContent = 'Input (Kiri) → Process (Tengah) → Storage (Bawah) → Output (Kanan)';
+                document.getElementById('hud-badge').textContent = 'SIKLUS IPOS';
+
+                buildSimulation3DScene();
+                selectSimScenario(0);
+            } else if (mode === 'quiz') {
+                leftSidebar.classList.add('hidden');
+                centerCol.className = 'lg:col-span-7 flex flex-col gap-3 order-1';
+                rightCol.className = 'lg:col-span-5 flex flex-col gap-3 order-2';
+
+                panelEdu.classList.add('hidden');
+                panelSim.classList.add('hidden');
+                panelQuiz.classList.remove('hidden');
+                panelQuiz.classList.add('flex');
+                hudControls.classList.remove('hidden');
+
+                startQuizMode();
+            }
+
+            setTimeout(onWindowResize, 50);
+        }
+
+        /*************************************************************************
+         * 10. SIMULATION MODE CONTROLLERS
+         *************************************************************************/
+        function selectSimScenario(scenIndex) {
+            playSound('click');
+            currentSimScenario = scenIndex;
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`sim-scen-${i}`);
+                if (i === scenIndex) {
+                    btn.className = 'sim-scen-btn active text-left p-2.5 rounded-xl glass-card border border-sky-400 bg-sky-500/15 flex items-center gap-3';
+                } else {
+                    btn.className = 'sim-scen-btn text-left p-2.5 rounded-xl glass-card flex items-center gap-3';
+                }
+            }
+            setSimStep(0);
+        }
+
+        function setSimStep(stepIndex) {
+            currentSimStep = stepIndex;
+            const scen = SIM_SCENARIOS[currentSimScenario];
+            const stepData = scen.steps[stepIndex];
+
+            document.getElementById('sim-step-badge').textContent = stepData.badge;
+            document.getElementById('sim-active-hw').textContent = stepData.hw;
+            document.getElementById('sim-step-title').textContent = stepData.title;
+            document.getElementById('sim-step-desc').textContent = stepData.desc;
+
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById(`sim-dot-${i}`);
+                if (i === stepIndex) {
+                    dot.className = 'py-1.5 px-2 rounded-lg text-[10px] font-bold bg-sky-500 text-slate-950 text-center shadow';
+                } else {
+                    dot.className = 'py-1.5 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 text-center';
+                }
+            }
+
+            if (camera && stepData.camPos) {
+                camera.position.set(stepData.camPos[0], stepData.camPos[1], stepData.camPos[2]);
+                controls.target.set(0, 0, 0);
+            }
+        }
+
+        function nextSimStep() {
+            playSound('click');
+            setSimStep((currentSimStep + 1) % 4);
+        }
+
+        function prevSimStep() {
+            playSound('click');
+            setSimStep((currentSimStep + 3) % 4);
+        }
+
+        function toggleSimAutoPlay() {
+            playSound('click');
+            if (simAutoPlayTimer) {
+                stopSimAutoPlay();
+            } else {
+                const icon = document.getElementById('icon-sim-play');
+                const txt = document.getElementById('text-sim-play');
+                icon.className = 'fa-solid fa-pause';
+                txt.textContent = 'Jeda Animasi Alur';
+                simAutoPlayTimer = setInterval(() => {
+                    setSimStep((currentSimStep + 1) % 4);
+                }, 3200);
+            }
+        }
+
+        function stopSimAutoPlay() {
+            if (simAutoPlayTimer) {
+                clearInterval(simAutoPlayTimer);
+                simAutoPlayTimer = null;
+            }
+            const icon = document.getElementById('icon-sim-play');
+            const txt = document.getElementById('text-sim-play');
+            if (icon && txt) {
+                icon.className = 'fa-solid fa-play';
+                txt.textContent = 'Jalankan Animasi Alur Data';
+            }
+        }
+
+        /*************************************************************************
+         * 11. QUIZ & EVALUATION CONTROLLERS
+         *************************************************************************/
+        function startQuizMode() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            document.getElementById('quiz-question-container').classList.remove('hidden');
+            document.getElementById('quiz-result-container').classList.add('hidden');
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            quizAnswered = false;
+            const q = QUIZ_QUESTIONS[currentQuizIndex];
+
+            // Load mystery 3D model into viewer
+            currentHardwareId = q.modelId;
+            isExploded = q.explode;
+            updateExplodeButtonUI();
+            buildHardwareModel(q.modelId);
+            resetCameraView();
+
+            // Hide answer giveaway in HUD title during quiz
+            document.getElementById('hud-title').textContent = `Komponen Misteri #${currentQuizIndex + 1}`;
+            document.getElementById('hud-subtitle').textContent = 'Putar dan amati bentuk 3D komponen ini untuk menjawab kuis!';
+            document.getElementById('hud-badge').textContent = 'KUIS 3D';
+
+            document.getElementById('quiz-score-display').textContent = `${Math.round(quizScore)} / 100`;
+            document.getElementById('quiz-progress-text').textContent = `Soal ${currentQuizIndex + 1} dari ${QUIZ_QUESTIONS.length}`;
+            document.getElementById('quiz-progress-bar').style.width = `${((currentQuizIndex + 1) / QUIZ_QUESTIONS.length) * 100}%`;
+            document.getElementById('quiz-question-text').textContent = q.question;
+
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            feedbackBox.classList.add('hidden');
+            document.getElementById('btn-quiz-next').classList.add('hidden');
+
+            const optList = document.getElementById('quiz-options-list');
+            optList.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `quiz-opt-${idx}`;
+                btn.className = 'w-full text-left p-3 rounded-xl glass-card flex items-center gap-3 text-xs sm:text-sm font-semibold text-slate-200 hover:border-sky-400 transition';
+                btn.onclick = () => checkQuizAnswer(idx);
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 text-sky-400 font-bold text-xs flex items-center justify-center shrink-0">
+                        ${letters[idx]}
+                    </span>
+                    <span>${optText}</span>
+                `;
+                optList.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selectedIndex) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+
+            const q = QUIZ_QUESTIONS[currentQuizIndex];
+            const isCorrect = selectedIndex === q.correct;
+
+            if (isCorrect) {
+                playSound('correct');
+                quizScore += 100 / QUIZ_QUESTIONS.length;
+            } else {
+                playSound('wrong');
+            }
+
+            document.getElementById('quiz-score-display').textContent = `${Math.round(quizScore)} / 100`;
+
+            // Reveal real hardware name in HUD
+            const hw = HARDWARE_DATA.find(item => item.id === q.modelId);
+            if (hw) {
+                document.getElementById('hud-title').textContent = hw.name;
+                document.getElementById('hud-subtitle').textContent = hw.subtitle;
+            }
+
+            // Style option buttons
+            q.options.forEach((_, idx) => {
+                const btn = document.getElementById(`quiz-opt-${idx}`);
+                if (idx === q.correct) {
+                    btn.className = 'w-full text-left p-3 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 flex items-center gap-3 text-xs sm:text-sm font-bold text-emerald-200';
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.className = 'w-full text-left p-3 rounded-xl bg-rose-500/20 border-2 border-rose-400 flex items-center gap-3 text-xs sm:text-sm font-bold text-rose-200';
+                } else {
+                    btn.className = 'w-full text-left p-3 rounded-xl glass-card opacity-50 flex items-center gap-3 text-xs sm:text-sm text-slate-400';
+                }
+            });
+
+            // Show Feedback
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            feedbackBox.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackBox.className = 'p-3 rounded-xl border bg-emerald-500/15 border-emerald-500/40 text-emerald-200 text-xs leading-relaxed';
+                feedbackBox.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <b>Jawaban Benar!</b> ${q.explanation}`;
+            } else {
+                feedbackBox.className = 'p-3 rounded-xl border bg-rose-500/15 border-rose-500/40 text-rose-200 text-xs leading-relaxed';
+                feedbackBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400 mr-1.5"></i> <b>Kurang Tepat.</b> ${q.explanation}`;
+            }
+
+            const nextBtn = document.getElementById('btn-quiz-next');
+            nextBtn.classList.remove('hidden');
+            nextBtn.innerHTML = currentQuizIndex < QUIZ_QUESTIONS.length - 1
+                ? 'Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>'
+                : 'Lihat Hasil Evaluasi <i class="fa-solid fa-flag-checkered ml-1"></i>';
+        }
+
+        function nextQuizQuestion() {
+            playSound('click');
+            if (currentQuizIndex < QUIZ_QUESTIONS.length - 1) {
+                currentQuizIndex++;
+                loadQuizQuestion();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-question-container').classList.add('hidden');
+            const resBox = document.getElementById('quiz-result-container');
+            resBox.classList.remove('hidden');
+            resBox.classList.add('flex');
+
+            const finalScore = Math.round(quizScore);
+            document.getElementById('quiz-final-score').textContent = finalScore;
+
+            const starsRow = document.getElementById('quiz-stars-row');
+            const starCount = finalScore >= 85 ? 3 : finalScore >= 60 ? 2 : 1;
+            starsRow.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                starsRow.innerHTML += i < starCount
+                    ? '<i class="fa-solid fa-star text-amber-400"></i>'
+                    : '<i class="fa-regular fa-star text-slate-600"></i>';
+            }
+
+            const msg = document.getElementById('quiz-final-message');
+            if (finalScore >= 85) {
+                msg.textContent = 'Luar Biasa! Kamu telah mencapai Tujuan Pembelajaran Fase D dengan sangat baik dalam mengenali bentuk 3D dan fungsi perangkat keras komputer!';
+            } else if (finalScore >= 60) {
+                msg.textContent = 'Bagus! Kamu sudah memahami sebagian besar perangkat keras komputer. Yuk eksplorasi lagi fitur Bongkar 3D agar nilaimu sempurna!';
+            } else {
+                msg.textContent = 'Jangan menyerah! Mari pelajari kembali katalog perangkat keras di menu Eksplorasi 3D lalu coba kuis ini lagi.';
+            }
+        }
+
+        function restartQuiz() {
+            playSound('click');
+            startQuizMode();
+        }
+
+        /*************************************************************************
+         * 12. TEACHER MODAL & INITIALIZATION ON WINDOW LOAD
+         *************************************************************************/
+        function openTeacherModal() {
+            playSound('click');
+            const modal = document.getElementById('modal-teacher');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTeacherModal() {
+            playSound('click');
+            const modal = document.getElementById('modal-teacher');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        window.onload = function () {
+            initThreeJS();
+            selectHardware('cpu');
+            animateLoop();
+        };
+    </script>
+</body>
+</html>
